@@ -646,11 +646,11 @@
         </div>
 
         <div class="tabs">
-            <div class="tab active" data-tab="schedule">📅 경기 일정</div>
-            <div class="tab" data-tab="groups">👥 조 편성과 승점현황</div>
-            <div class="tab" data-tab="scores">📊 스코어 관리</div>
-            <div class="tab" data-tab="stats">📈 통계</div>
-            <div class="tab" data-tab="admin">⚙️ 선수 관리</div>
+            <div class="tab active" onclick="switchTab('schedule')">📅 경기 일정</div>
+            <div class="tab" onclick="switchTab('groups')">👥 조 편성과 승점현황</div>
+            <div class="tab" onclick="switchTab('scores')">📊 스코어 관리</div>
+            <div class="tab" onclick="switchTab('stats')">📈 통계</div>
+            <div class="tab" onclick="switchTab('admin')">⚙️ 선수 관리</div>
         </div>
 
         <div class="content">
@@ -1124,6 +1124,31 @@
             }, duration);
         }
 
+        // 간단한 탭 전환 함수
+        function switchTab(tabName) {
+            console.log('Switching to tab:', tabName);
+            
+            // 모든 탭 비활성화
+            const tabs = document.querySelectorAll('.tab');
+            tabs.forEach(tab => tab.classList.remove('active'));
+            
+            // 모든 콘텐츠 숨기기
+            const contents = document.querySelectorAll('.tab-content');
+            contents.forEach(content => content.classList.remove('active'));
+            
+            // 클릭된 탭 활성화
+            event.target.classList.add('active');
+            
+            // 해당 콘텐츠 표시
+            const targetContent = document.getElementById(tabName);
+            if (targetContent) {
+                targetContent.classList.add('active');
+                console.log('Successfully switched to:', tabName);
+            } else {
+                console.error('Tab content not found:', tabName);
+            }
+        }
+
         // 탭 전환 기능
         function showTab(tabName, tabElement) {
             console.log('Showing tab:', tabName); // 디버깅용
@@ -1516,7 +1541,7 @@
             createScoreInputs();
             updateStats();
             updateGroupStats();
-            initializeTabs();
+            // initializeTabs(); // 복잡한 탭 초기화 제거
             
             // 애니메이션 효과
             const elements = document.querySelectorAll('.group, .stat-card, .score-card');
