@@ -237,6 +237,38 @@
             color: #495057;
         }
 
+        .group-stats {
+            margin-top: 20px;
+            padding: 15px;
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border-radius: 10px;
+            border: 2px solid #2ecc71;
+        }
+
+        .stat-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 8px 0;
+            padding: 5px 0;
+        }
+
+        .stat-label {
+            font-weight: bold;
+            color: #495057;
+            font-size: 1em;
+        }
+
+        .stat-value {
+            font-weight: bold;
+            color: #2ecc71;
+            font-size: 1.2em;
+            background: white;
+            padding: 4px 12px;
+            border-radius: 15px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
         .score-tracker {
             background: #f8f9fa;
             padding: 30px;
@@ -511,6 +543,76 @@
                 font-size: 2em;
             }
         }
+
+        .group-ranking {
+            margin-top: 40px;
+        }
+
+        .ranking-table {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .ranking-header {
+            display: grid;
+            grid-template-columns: 80px 1fr 100px 100px;
+            gap: 20px;
+            padding: 20px;
+            background: #2ecc71;
+            color: white;
+            font-weight: bold;
+            text-align: center;
+        }
+
+        .ranking-row {
+            display: grid;
+            grid-template-columns: 80px 1fr 100px 100px;
+            gap: 20px;
+            padding: 15px 20px;
+            border-bottom: 1px solid #e9ecef;
+            transition: all 0.3s ease;
+        }
+
+        .ranking-row:hover {
+            background: #f8f9fa;
+        }
+
+        .ranking-row:last-child {
+            border-bottom: none;
+        }
+
+        .ranking-row.rank-1 {
+            background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%);
+            color: #333;
+        }
+
+        .ranking-row.rank-2 {
+            background: linear-gradient(135deg, #c0c0c0 0%, #e5e5e5 100%);
+            color: #333;
+        }
+
+        .ranking-row.rank-3 {
+            background: linear-gradient(135deg, #cd7f32 0%, #daa520 100%);
+            color: white;
+        }
+
+        .ranking-row .rank-number {
+            font-weight: bold;
+            font-size: 1.2em;
+            text-align: center;
+        }
+
+        .ranking-row .group-name {
+            font-weight: bold;
+            text-align: center;
+        }
+
+        .ranking-row .points, .ranking-row .wins {
+            text-align: center;
+            font-weight: bold;
+        }
     </style>
 </head>
 <body>
@@ -633,21 +735,77 @@
                         <h3>1조</h3>
                         <p><strong>선수:</strong></p>
                         <p>현숙, 지혜, 병수, 석환, 성무</p>
+                        <div class="group-stats">
+                            <div class="stat-item">
+                                <span class="stat-label">승점:</span>
+                                <span class="stat-value" id="group1-points">0</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-label">승리:</span>
+                                <span class="stat-value" id="group1-wins">0</span>
+                            </div>
+                        </div>
                     </div>
                     <div class="group" data-group="2조">
                         <h3>2조</h3>
                         <p><strong>선수:</strong></p>
                         <p>이현, 용무, 종명, 용국, 정수, 상현</p>
+                        <div class="group-stats">
+                            <div class="stat-item">
+                                <span class="stat-label">승점:</span>
+                                <span class="stat-value" id="group2-points">0</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-label">승리:</span>
+                                <span class="stat-value" id="group2-wins">0</span>
+                            </div>
+                        </div>
                     </div>
                     <div class="group" data-group="3조">
                         <h3>3조</h3>
                         <p><strong>선수:</strong></p>
                         <p>경은, 재성, 승윤, 영기, 양규, 영민</p>
+                        <div class="group-stats">
+                            <div class="stat-item">
+                                <span class="stat-label">승점:</span>
+                                <span class="stat-value" id="group3-points">0</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-label">승리:</span>
+                                <span class="stat-value" id="group3-wins">0</span>
+                            </div>
+                        </div>
                     </div>
                     <div class="group" data-group="4조">
                         <h3>4조</h3>
                         <p><strong>선수:</strong></p>
                         <p>정언, 남희, 자우, 승호, 진석, 승윤</p>
+                        <div class="group-stats">
+                            <div class="stat-item">
+                                <span class="stat-label">승점:</span>
+                                <span class="stat-value" id="group4-points">0</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-label">승리:</span>
+                                <span class="stat-value" id="group4-wins">0</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 조별 순위표 -->
+                <div class="group-ranking">
+                    <h3 style="margin: 30px 0 20px 0; color: #2ecc71;">조별 순위</h3>
+                    <div class="ranking-table">
+                        <div class="ranking-header">
+                            <span>순위</span>
+                            <span>조</span>
+                            <span>승점</span>
+                            <span>승리</span>
+                        </div>
+                        <div id="ranking-body">
+                            <!-- 동적으로 생성됨 -->
+                        </div>
                     </div>
                 </div>
             </div>
@@ -832,6 +990,7 @@
             saveData();
             updateScheduleDisplay(matchId);
             updateStats();
+            updateGroupStats();
             updateButtonText(matchId);
             
             showNotification('스코어가 저장되었습니다!', 2000);
@@ -879,11 +1038,98 @@
             document.getElementById('progress-fill').style.width = progress + '%';
         }
 
+        // 조별 승점 계산
+        function calculateGroupPoints() {
+            const groupStats = {
+                1: { points: 0, wins: 0 },
+                2: { points: 0, wins: 0 },
+                3: { points: 0, wins: 0 },
+                4: { points: 0, wins: 0 }
+            };
+
+            Object.keys(savedScores).forEach(matchId => {
+                const score = savedScores[matchId];
+                const match = matchData[matchId];
+                
+                // 팀1과 팀2의 조 추출
+                const team1Group = parseInt(match.team1.match(/\((\d+)조\)/)[1]);
+                const team2Group = parseInt(match.team2.match(/\((\d+)조\)/)[1]);
+                
+                // 승점 계산 (승리: 3점, 무승부: 1점, 패배: 0점)
+                if (score.team1 > score.team2) {
+                    groupStats[team1Group].points += 3;
+                    groupStats[team1Group].wins += 1;
+                } else if (score.team1 < score.team2) {
+                    groupStats[team2Group].points += 3;
+                    groupStats[team2Group].wins += 1;
+                } else {
+                    groupStats[team1Group].points += 1;
+                    groupStats[team2Group].points += 1;
+                }
+            });
+
+            return groupStats;
+        }
+
+        // 조별 승점 표시 업데이트
+        function updateGroupStats() {
+            const groupStats = calculateGroupPoints();
+            
+            // 각 조별 승점 표시
+            for (let i = 1; i <= 4; i++) {
+                document.getElementById(`group${i}-points`).textContent = groupStats[i].points;
+                document.getElementById(`group${i}-wins`).textContent = groupStats[i].wins;
+            }
+            
+            // 순위표 업데이트
+            updateRankingTable(groupStats);
+        }
+
+        // 순위표 업데이트
+        function updateRankingTable(groupStats) {
+            const rankingBody = document.getElementById('ranking-body');
+            const rankings = [];
+            
+            // 순위 데이터 생성
+            for (let i = 1; i <= 4; i++) {
+                rankings.push({
+                    group: i,
+                    points: groupStats[i].points,
+                    wins: groupStats[i].wins
+                });
+            }
+            
+            // 승점 기준으로 정렬 (동점시 승리 수로 정렬)
+            rankings.sort((a, b) => {
+                if (b.points !== a.points) {
+                    return b.points - a.points;
+                }
+                return b.wins - a.wins;
+            });
+            
+            // 순위표 HTML 생성
+            let rankingHTML = '';
+            rankings.forEach((rank, index) => {
+                const rankClass = index < 3 ? `rank-${index + 1}` : '';
+                rankingHTML += `
+                    <div class="ranking-row ${rankClass}">
+                        <div class="rank-number">${index + 1}</div>
+                        <div class="group-name">${rank.group}조</div>
+                        <div class="points">${rank.points}점</div>
+                        <div class="wins">${rank.wins}승</div>
+                    </div>
+                `;
+            });
+            
+            rankingBody.innerHTML = rankingHTML;
+        }
+
         // 페이지 로드 시 초기화
         window.addEventListener('load', () => {
             loadSavedData();
             createScoreInputs();
             updateStats();
+            updateGroupStats();
             initializeTabs();
             
             // 애니메이션 효과
