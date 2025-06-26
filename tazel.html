@@ -1,0 +1,915 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>테니스는 즐거워 - 대회 관리 시스템</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Noto Sans KR', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.98);
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+            overflow: hidden;
+            backdrop-filter: blur(10px);
+        }
+
+        .header {
+            background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header::before {
+            content: "🎾";
+            position: absolute;
+            font-size: 200px;
+            opacity: 0.1;
+            top: -50px;
+            right: -50px;
+            animation: float 6s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(-20px) rotate(5deg); }
+        }
+
+        .header h1 {
+            font-size: clamp(1.8em, 4vw, 2.5em);
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .header p {
+            font-size: clamp(1em, 2.5vw, 1.2em);
+            opacity: 0.9;
+        }
+
+        .tabs {
+            display: flex;
+            background: #f8f9fa;
+            border-bottom: 2px solid #e9ecef;
+            flex-wrap: wrap;
+        }
+
+        .tab {
+            flex: 1;
+            min-width: 120px;
+            padding: 20px 15px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: bold;
+            color: #495057;
+            position: relative;
+            border-right: 1px solid #e9ecef;
+            -webkit-tap-highlight-color: transparent;
+            user-select: none;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+        }
+
+        .tab:last-child {
+            border-right: none;
+        }
+
+        .tab:hover {
+            background: #e9ecef;
+            transform: translateY(-2px);
+        }
+
+        .tab.active {
+            background: white;
+            color: #2ecc71;
+            box-shadow: 0 2px 0 #2ecc71;
+        }
+
+        .content {
+            padding: 30px;
+        }
+
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .schedule-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 30px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.05);
+            border-radius: 10px;
+            overflow: hidden;
+            font-size: clamp(0.8em, 2vw, 1em);
+        }
+
+        .schedule-table th,
+        .schedule-table td {
+            padding: 12px 8px;
+            text-align: center;
+            border: 1px solid #e9ecef;
+            vertical-align: middle;
+        }
+
+        .schedule-table th {
+            background: #2ecc71;
+            color: white;
+            font-weight: bold;
+            text-transform: uppercase;
+            font-size: 0.9em;
+        }
+
+        .schedule-table tr:nth-child(even) {
+            background: #f8f9fa;
+        }
+
+        .schedule-table tr:hover {
+            background: #e8f5e9;
+            transform: scale(1.005);
+            transition: all 0.3s ease;
+        }
+
+        .court-a {
+            background: #e3f2fd !important;
+        }
+
+        .court-b {
+            background: #fff3e0 !important;
+        }
+
+        .score-display {
+            font-weight: bold;
+            color: #2ecc71;
+            font-size: 1.1em;
+        }
+
+        .match-status {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 0.8em;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        .status-pending {
+            background: #ffeaa7;
+            color: #d63031;
+        }
+
+        .status-completed {
+            background: #00b894;
+            color: white;
+        }
+
+        .groups {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .group {
+            background: white;
+            border: 2px solid #e9ecef;
+            border-radius: 15px;
+            padding: 20px;
+            text-align: center;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+        }
+
+        .group::before {
+            content: attr(data-group);
+            position: absolute;
+            top: -50px;
+            right: -50px;
+            font-size: 100px;
+            font-weight: bold;
+            color: rgba(0, 0, 0, 0.05);
+        }
+
+        .group:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+        }
+
+        .group h3 {
+            color: #2ecc71;
+            margin-bottom: 15px;
+            font-size: 1.5em;
+        }
+
+        .group p {
+            margin: 10px 0;
+            font-size: 1.1em;
+            color: #495057;
+        }
+
+        .score-tracker {
+            background: #f8f9fa;
+            padding: 30px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+        }
+
+        .score-tracker h3 {
+            margin-bottom: 20px;
+            color: #2ecc71;
+            font-size: 1.8em;
+        }
+
+        .match-score {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 20px;
+        }
+
+        .score-card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+
+        .score-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+            border-color: #2ecc71;
+        }
+
+        .score-card h4 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 1.2em;
+        }
+
+        .score-input {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .score-input input {
+            width: 60px;
+            padding: 10px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            text-align: center;
+            font-size: 1.1em;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+
+        .score-input input:focus {
+            outline: none;
+            border-color: #2ecc71;
+            box-shadow: 0 0 0 3px rgba(46, 204, 113, 0.1);
+        }
+
+        .score-input input:invalid {
+            border-color: #e74c3c;
+        }
+
+        .btn {
+            background: #2ecc71;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            margin-top: 10px;
+            width: 100%;
+            -webkit-tap-highlight-color: transparent;
+            user-select: none;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+        }
+
+        .btn:hover {
+            background: #27ae60;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(46, 204, 113, 0.3);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn:disabled {
+            background: #bdc3c7;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .player-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-top: 30px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 25px;
+            border-radius: 15px;
+            text-align: center;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .stat-card:hover::before {
+            left: 100%;
+        }
+
+        .stat-card:hover {
+            transform: scale(1.05);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .stat-card h5 {
+            font-size: 1.1em;
+            margin-bottom: 15px;
+            opacity: 0.9;
+        }
+
+        .stat-card .number {
+            font-size: 2.5em;
+            font-weight: bold;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 20px;
+            background: #ecf0f1;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-top: 10px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #2ecc71, #27ae60);
+            transition: width 0.5s ease;
+            border-radius: 10px;
+        }
+
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #2ecc71;
+            color: white;
+            padding: 15px 25px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            transform: translateX(400px);
+            transition: transform 0.3s ease;
+            z-index: 1000;
+        }
+
+        .notification.show {
+            transform: translateX(0);
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #2ecc71;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+
+            .container {
+                border-radius: 15px;
+            }
+
+            .header {
+                padding: 20px;
+            }
+
+            .tabs {
+                flex-direction: column;
+            }
+
+            .tab {
+                border-right: none;
+                border-bottom: 1px solid #e9ecef;
+            }
+
+            .content {
+                padding: 20px;
+            }
+
+            .schedule-table {
+                font-size: 0.8em;
+            }
+
+            .schedule-table th,
+            .schedule-table td {
+                padding: 8px 4px;
+            }
+
+            .groups {
+                grid-template-columns: 1fr;
+            }
+
+            .match-score {
+                grid-template-columns: 1fr;
+            }
+
+            .score-input {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .score-input input {
+                width: 80px;
+            }
+
+            .player-stats {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 480px) {
+            .player-stats {
+                grid-template-columns: 1fr;
+            }
+
+            .stat-card {
+                padding: 20px;
+            }
+
+            .stat-card .number {
+                font-size: 2em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎾 테니스는 즐거워</h1>
+            <p>2024년 6월 27일 자체대회 관리 시스템</p>
+        </div>
+
+        <div class="tabs">
+            <div class="tab active" data-tab="schedule">📅 경기 일정</div>
+            <div class="tab" data-tab="groups">👥 조 편성</div>
+            <div class="tab" data-tab="scores">📊 스코어 관리</div>
+            <div class="tab" data-tab="stats">📈 통계</div>
+        </div>
+
+        <div class="content">
+            <!-- 경기 일정 탭 -->
+            <div id="schedule" class="tab-content active">
+                <h2 style="margin-bottom: 20px; color: #2ecc71;">경기 일정표</h2>
+                <table class="schedule-table">
+                    <thead>
+                        <tr>
+                            <th>경기</th>
+                            <th>시간</th>
+                            <th colspan="3">A코트</th>
+                            <th colspan="3">B코트</th>
+                        </tr>
+                        <tr>
+                            <th></th>
+                            <th></th>
+                            <th>대진</th>
+                            <th>스코어</th>
+                            <th>상태</th>
+                            <th>대진</th>
+                            <th>스코어</th>
+                            <th>상태</th>
+                        </tr>
+                    </thead>
+                    <tbody id="schedule-body">
+                        <tr data-match="1">
+                            <td>1경기</td>
+                            <td>5:00-5:30</td>
+                            <td class="court-a">석환/성무(1조) : 종영/용무(2조)</td>
+                            <td class="court-a score-display" id="score-1a">-</td>
+                            <td class="court-a"><span class="match-status status-pending" id="status-1a">대기</span></td>
+                            <td class="court-b">경은/재성(3조) : 정언/남희(4조)</td>
+                            <td class="court-b score-display" id="score-1b">-</td>
+                            <td class="court-b"><span class="match-status status-pending" id="status-1b">대기</span></td>
+                        </tr>
+                        <tr data-match="2">
+                            <td>2경기</td>
+                            <td>5:30-6:00</td>
+                            <td class="court-a">현숙/병수(1조) : 정은/승윤(3조)</td>
+                            <td class="court-a score-display" id="score-2a">-</td>
+                            <td class="court-a"><span class="match-status status-pending" id="status-2a">대기</span></td>
+                            <td class="court-b">이현/용국(2조) : 정언/승호(4조)</td>
+                            <td class="court-b score-display" id="score-2b">-</td>
+                            <td class="court-b"><span class="match-status status-pending" id="status-2b">대기</span></td>
+                        </tr>
+                        <tr data-match="3">
+                            <td>3경기</td>
+                            <td>6:00-6:30</td>
+                            <td class="court-a">성무/석환(1조) : 자우/남희(4조)</td>
+                            <td class="court-a score-display" id="score-3a">-</td>
+                            <td class="court-a"><span class="match-status status-pending" id="status-3a">대기</span></td>
+                            <td class="court-b">용국/정수(2조) : 재성/영기(3조)</td>
+                            <td class="court-b score-display" id="score-3b">-</td>
+                            <td class="court-b"><span class="match-status status-pending" id="status-3b">대기</span></td>
+                        </tr>
+                        <tr data-match="4">
+                            <td>4경기</td>
+                            <td>6:30-7:00</td>
+                            <td class="court-a">지혜/병수(1조) : 정언/진석(4조)</td>
+                            <td class="court-a score-display" id="score-4a">-</td>
+                            <td class="court-a"><span class="match-status status-pending" id="status-4a">대기</span></td>
+                            <td class="court-b">상현/용무(2조) : 승윤/양규(3조)</td>
+                            <td class="court-b score-display" id="score-4b">-</td>
+                            <td class="court-b"><span class="match-status status-pending" id="status-4b">대기</span></td>
+                        </tr>
+                        <tr data-match="5">
+                            <td>5경기</td>
+                            <td>7:00-7:30</td>
+                            <td class="court-a">석환/현숙(1조) : 영기/경은(3조)</td>
+                            <td class="court-a score-display" id="score-5a">-</td>
+                            <td class="court-a"><span class="match-status status-pending" id="status-5a">대기</span></td>
+                            <td class="court-b">종명/정수(2조) : 자우/승호(4조)</td>
+                            <td class="court-b score-display" id="score-5b">-</td>
+                            <td class="court-b"><span class="match-status status-pending" id="status-5b">대기</span></td>
+                        </tr>
+                        <tr data-match="6">
+                            <td>6경기</td>
+                            <td>7:30-8:00</td>
+                            <td class="court-a">지혜/성무(1조) : 이현/상현(2조)</td>
+                            <td class="court-a score-display" id="score-6a">-</td>
+                            <td class="court-a"><span class="match-status status-pending" id="status-6a">대기</span></td>
+                            <td class="court-b">영민/재성(3조) : 진석/남희(4조)</td>
+                            <td class="court-b score-display" id="score-6b">-</td>
+                            <td class="court-b"><span class="match-status status-pending" id="status-6b">대기</span></td>
+                        </tr>
+                        <tr data-match="7">
+                            <td>7경기</td>
+                            <td>8:00-8:30</td>
+                            <td class="court-a">지혜/현숙(1조) : 영민/양규(3조)</td>
+                            <td class="court-a score-display" id="score-7a">-</td>
+                            <td class="court-a"><span class="match-status status-pending" id="status-7a">대기</span></td>
+                            <td class="court-b">이현/용국(2조) : 정언/자우(4조)</td>
+                            <td class="court-b score-display" id="score-7b">-</td>
+                            <td class="court-b"><span class="match-status status-pending" id="status-7b">대기</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- 조 편성 탭 -->
+            <div id="groups" class="tab-content">
+                <h2 style="margin-bottom: 20px; color: #2ecc71;">조 편성 현황</h2>
+                <div class="groups">
+                    <div class="group" data-group="1조">
+                        <h3>1조</h3>
+                        <p><strong>선수:</strong></p>
+                        <p>현숙, 지혜, 병수, 석환, 성무</p>
+                    </div>
+                    <div class="group" data-group="2조">
+                        <h3>2조</h3>
+                        <p><strong>선수:</strong></p>
+                        <p>이현, 용무, 종명, 용국, 정수, 상현</p>
+                    </div>
+                    <div class="group" data-group="3조">
+                        <h3>3조</h3>
+                        <p><strong>선수:</strong></p>
+                        <p>경은, 재성, 승윤, 영기, 양규, 영민</p>
+                    </div>
+                    <div class="group" data-group="4조">
+                        <h3>4조</h3>
+                        <p><strong>선수:</strong></p>
+                        <p>정언, 남희, 자우, 승호, 진석, 승윤</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 스코어 관리 탭 -->
+            <div id="scores" class="tab-content">
+                <div class="score-tracker">
+                    <h3>경기 스코어 입력</h3>
+                    <div class="match-score" id="score-inputs">
+                        <!-- 동적으로 생성됨 -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- 통계 탭 -->
+            <div id="stats" class="tab-content">
+                <h2 style="margin-bottom: 20px; color: #2ecc71;">대회 통계</h2>
+                <div class="player-stats">
+                    <div class="stat-card">
+                        <h5>총 경기 수</h5>
+                        <div class="number">14</div>
+                    </div>
+                    <div class="stat-card">
+                        <h5>참가 선수</h5>
+                        <div class="number">22</div>
+                    </div>
+                    <div class="stat-card">
+                        <h5>진행된 경기</h5>
+                        <div class="number" id="completed-matches">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <h5>대회 진행률</h5>
+                        <div class="number" id="progress">0%</div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="progress-fill" style="width: 0%"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="notification" id="notification">
+        <span id="notification-text"></span>
+    </div>
+
+    <script>
+        // 전역 변수
+        let savedScores = {};
+        const totalMatches = 14;
+        const matchData = {
+            '1a': { team1: '석환/성무(1조)', team2: '종영/용무(2조)' },
+            '1b': { team1: '경은/재성(3조)', team2: '정언/남희(4조)' },
+            '2a': { team1: '현숙/병수(1조)', team2: '정은/승윤(3조)' },
+            '2b': { team1: '이현/용국(2조)', team2: '정언/승호(4조)' },
+            '3a': { team1: '성무/석환(1조)', team2: '자우/남희(4조)' },
+            '3b': { team1: '용국/정수(2조)', team2: '재성/영기(3조)' },
+            '4a': { team1: '지혜/병수(1조)', team2: '정언/진석(4조)' },
+            '4b': { team1: '상현/용무(2조)', team2: '승윤/양규(3조)' },
+            '5a': { team1: '석환/현숙(1조)', team2: '영기/경은(3조)' },
+            '5b': { team1: '종명/정수(2조)', team2: '자우/승호(4조)' },
+            '6a': { team1: '지혜/성무(1조)', team2: '이현/상현(2조)' },
+            '6b': { team1: '영민/재성(3조)', team2: '진석/남희(4조)' },
+            '7a': { team1: '지혜/현숙(1조)', team2: '영민/양규(3조)' },
+            '7b': { team1: '이현/용국(2조)', team2: '정언/자우(4조)' }
+        };
+
+        // 로컬 스토리지에서 데이터 로드
+        function loadSavedData() {
+            const saved = localStorage.getItem('tennisTournamentData');
+            if (saved) {
+                savedScores = JSON.parse(saved);
+                updateAllDisplays();
+            }
+        }
+
+        // 로컬 스토리지에 데이터 저장
+        function saveData() {
+            localStorage.setItem('tennisTournamentData', JSON.stringify(savedScores));
+        }
+
+        // 알림 표시
+        function showNotification(message, duration = 3000) {
+            const notification = document.getElementById('notification');
+            const text = document.getElementById('notification-text');
+            text.textContent = message;
+            notification.classList.add('show');
+            
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, duration);
+        }
+
+        // 탭 전환 기능
+        function showTab(tabName, tabElement) {
+            const tabs = document.querySelectorAll('.tab');
+            const contents = document.querySelectorAll('.tab-content');
+            
+            tabs.forEach(tab => tab.classList.remove('active'));
+            contents.forEach(content => content.classList.remove('active'));
+            
+            tabElement.classList.add('active');
+            document.getElementById(tabName).classList.add('active');
+        }
+
+        // 이벤트 리스너를 사용한 탭 기능 (모바일 호환)
+        function initializeTabs() {
+            const tabs = document.querySelectorAll('.tab');
+            
+            tabs.forEach(tab => {
+                // 클릭 이벤트
+                tab.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const tabName = this.getAttribute('data-tab');
+                    showTab(tabName, this);
+                });
+                
+                // 터치 이벤트 (모바일)
+                tab.addEventListener('touchstart', function(e) {
+                    e.preventDefault();
+                    const tabName = this.getAttribute('data-tab');
+                    showTab(tabName, this);
+                });
+            });
+        }
+
+        // 스코어 입력 폼 생성
+        function createScoreInputs() {
+            const container = document.getElementById('score-inputs');
+            container.innerHTML = '';
+
+            Object.keys(matchData).forEach(matchId => {
+                const match = matchData[matchId];
+                const matchNumber = matchId.charAt(0);
+                const court = matchId.charAt(1) === 'a' ? 'A코트' : 'B코트';
+                
+                const scoreCard = document.createElement('div');
+                scoreCard.className = 'score-card';
+                scoreCard.innerHTML = `
+                    <h4>${matchNumber}경기 - ${court}</h4>
+                    <div class="score-input">
+                        <span>${match.team1}</span>
+                        <input type="number" id="match${matchId}-team1" min="0" max="99" placeholder="0">
+                        <span>:</span>
+                        <input type="number" id="match${matchId}-team2" min="0" max="99" placeholder="0">
+                        <span>${match.team2}</span>
+                    </div>
+                    <button class="btn" onclick="saveScore('${matchId}')" id="btn-${matchId}">
+                        ${savedScores[matchId] ? '수정' : '저장'}
+                    </button>
+                `;
+                container.appendChild(scoreCard);
+
+                // 저장된 스코어가 있으면 입력 필드에 표시
+                if (savedScores[matchId]) {
+                    document.getElementById(`match${matchId}-team1`).value = savedScores[matchId].team1;
+                    document.getElementById(`match${matchId}-team2`).value = savedScores[matchId].team2;
+                }
+            });
+        }
+
+        // 스코어 저장 기능
+        function saveScore(matchId) {
+            const team1Score = document.getElementById(`match${matchId}-team1`).value;
+            const team2Score = document.getElementById(`match${matchId}-team2`).value;
+            
+            if (team1Score === '' || team2Score === '') {
+                showNotification('스코어를 입력해주세요!', 2000);
+                return;
+            }
+
+            if (team1Score < 0 || team2Score < 0) {
+                showNotification('스코어는 0 이상이어야 합니다!', 2000);
+                return;
+            }
+            
+            savedScores[matchId] = {
+                team1: parseInt(team1Score),
+                team2: parseInt(team2Score)
+            };
+            
+            saveData();
+            updateScheduleDisplay(matchId);
+            updateStats();
+            updateButtonText(matchId);
+            
+            showNotification('스코어가 저장되었습니다!', 2000);
+        }
+
+        // 일정표 스코어 업데이트
+        function updateScheduleDisplay(matchId) {
+            const scoreElement = document.getElementById(`score-${matchId}`);
+            const statusElement = document.getElementById(`status-${matchId}`);
+            
+            if (savedScores[matchId]) {
+                const score = savedScores[matchId];
+                scoreElement.textContent = `${score.team1} - ${score.team2}`;
+                statusElement.textContent = '완료';
+                statusElement.className = 'match-status status-completed';
+            } else {
+                scoreElement.textContent = '-';
+                statusElement.textContent = '대기';
+                statusElement.className = 'match-status status-pending';
+            }
+        }
+
+        // 모든 일정표 업데이트
+        function updateAllDisplays() {
+            Object.keys(matchData).forEach(matchId => {
+                updateScheduleDisplay(matchId);
+            });
+        }
+
+        // 버튼 텍스트 업데이트
+        function updateButtonText(matchId) {
+            const button = document.getElementById(`btn-${matchId}`);
+            if (button) {
+                button.textContent = savedScores[matchId] ? '수정' : '저장';
+            }
+        }
+
+        // 통계 업데이트
+        function updateStats() {
+            const completedMatches = Object.keys(savedScores).length;
+            const progress = Math.round((completedMatches / totalMatches) * 100);
+            
+            document.getElementById('completed-matches').textContent = completedMatches;
+            document.getElementById('progress').textContent = progress + '%';
+            document.getElementById('progress-fill').style.width = progress + '%';
+        }
+
+        // 페이지 로드 시 초기화
+        window.addEventListener('load', () => {
+            loadSavedData();
+            createScoreInputs();
+            updateStats();
+            initializeTabs();
+            
+            // 애니메이션 효과
+            const elements = document.querySelectorAll('.group, .stat-card, .score-card');
+            elements.forEach((el, index) => {
+                el.style.opacity = '0';
+                el.style.transform = 'translateY(20px)';
+                setTimeout(() => {
+                    el.style.transition = 'all 0.5s ease';
+                    el.style.opacity = '1';
+                    el.style.transform = 'translateY(0)';
+                }, index * 50);
+            });
+        });
+
+        // 입력 필드 유효성 검사
+        document.addEventListener('input', function(e) {
+            if (e.target.type === 'number') {
+                const value = parseInt(e.target.value);
+                if (value < 0) {
+                    e.target.value = 0;
+                } else if (value > 99) {
+                    e.target.value = 99;
+                }
+            }
+        });
+    </script>
+</body>
+</html>
