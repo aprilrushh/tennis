@@ -109,16 +109,18 @@
         }
 
         .tab-content {
-            display: none;
+            display: none !important;
             animation: fadeIn 0.5s ease;
             opacity: 0;
             visibility: hidden;
+            position: relative;
         }
 
         .tab-content.active {
-            display: block;
-            opacity: 1;
-            visibility: visible;
+            display: block !important;
+            opacity: 1 !important;
+            visibility: visible !important;
+            position: relative;
         }
 
         @keyframes fadeIn {
@@ -636,6 +638,31 @@
             text-align: center;
             font-weight: bold;
         }
+
+        /* 선수 관리 탭 특별 스타일 */
+        #admin {
+            display: none !important;
+            opacity: 0 !important;
+            visibility: hidden !important;
+            position: relative !important;
+            z-index: 1000 !important;
+        }
+
+        #admin.active {
+            display: block !important;
+            opacity: 1 !important;
+            visibility: visible !important;
+            position: relative !important;
+            z-index: 1000 !important;
+            min-height: 100px !important;
+        }
+
+        /* 선수 관리 탭 내용 강제 표시 */
+        #admin h2,
+        #admin div {
+            display: block !important;
+            visibility: visible !important;
+        }
     </style>
 </head>
 <body>
@@ -1134,7 +1161,12 @@
             
             // 모든 콘텐츠 숨기기
             const contents = document.querySelectorAll('.tab-content');
-            contents.forEach(content => content.classList.remove('active'));
+            contents.forEach(content => {
+                content.classList.remove('active');
+                content.style.display = 'none';
+                content.style.opacity = '0';
+                content.style.visibility = 'hidden';
+            });
             
             // 클릭된 탭 활성화
             event.target.classList.add('active');
@@ -1143,7 +1175,27 @@
             const targetContent = document.getElementById(tabName);
             if (targetContent) {
                 targetContent.classList.add('active');
+                targetContent.style.display = 'block';
+                targetContent.style.opacity = '1';
+                targetContent.style.visibility = 'visible';
                 console.log('Successfully switched to:', tabName);
+                
+                // 추가 디버깅
+                console.log('Target content element:', targetContent);
+                console.log('Target content display:', targetContent.style.display);
+                console.log('Target content classes:', targetContent.className);
+                
+                // 추가 검증
+                setTimeout(() => {
+                    const computedStyle = window.getComputedStyle(targetContent);
+                    console.log('Computed display:', computedStyle.display);
+                    console.log('Computed visibility:', computedStyle.visibility);
+                    console.log('Computed opacity:', computedStyle.opacity);
+                    console.log('Element offsetHeight:', targetContent.offsetHeight);
+                    console.log('Element clientHeight:', targetContent.clientHeight);
+                    console.log('Element scrollHeight:', targetContent.scrollHeight);
+                }, 100);
+                
             } else {
                 console.error('Tab content not found:', tabName);
             }
@@ -1536,24 +1588,39 @@
         }
 
         // 페이지 로드 시 초기화
-        window.addEventListener('load', () => {
+        document.addEventListener('DOMContentLoaded', function() {
+            // 로컬 스토리지에서 데이터 로드
             loadSavedData();
-            createScoreInputs();
-            updateStats();
-            updateGroupStats();
-            // initializeTabs(); // 복잡한 탭 초기화 제거
             
-            // 애니메이션 효과
-            const elements = document.querySelectorAll('.group, .stat-card, .score-card');
-            elements.forEach((el, index) => {
-                el.style.opacity = '0';
-                el.style.transform = 'translateY(20px)';
-                setTimeout(() => {
-                    el.style.transition = 'all 0.5s ease';
-                    el.style.opacity = '1';
-                    el.style.transform = 'translateY(0)';
-                }, index * 50);
+            // 첫 번째 탭을 명시적으로 활성화
+            const firstTab = document.querySelector('.tab');
+            const firstTabContent = document.querySelector('.tab-content');
+            
+            if (firstTab && firstTabContent) {
+                firstTab.classList.add('active');
+                firstTabContent.classList.add('active');
+                firstTabContent.style.display = 'block';
+                firstTabContent.style.opacity = '1';
+                firstTabContent.style.visibility = 'visible';
+            }
+            
+            // 모든 탭 콘텐츠의 초기 상태 설정
+            const allTabContents = document.querySelectorAll('.tab-content');
+            allTabContents.forEach((content, index) => {
+                if (index === 0) {
+                    content.classList.add('active');
+                    content.style.display = 'block';
+                    content.style.opacity = '1';
+                    content.style.visibility = 'visible';
+                } else {
+                    content.classList.remove('active');
+                    content.style.display = 'none';
+                    content.style.opacity = '0';
+                    content.style.visibility = 'hidden';
+                }
             });
+            
+            console.log('Page loaded, first tab activated');
         });
 
         // 입력 필드 유효성 검사
