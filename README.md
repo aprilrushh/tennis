@@ -74,10 +74,10 @@ git clone https://github.com/aprilrushh/tennis.git
 cd tennis
 
 # 브라우저에서 파일 열기
-open tennis-tournament-manager.html
+open index.html
 ```
 
-또는 직접 [tennis-tournament-manager.html](tennis-tournament-manager.html) 파일을 브라우저에서 열어 사용하세요.
+또는 직접 [index.html](index.html) 파일을 브라우저에서 열어 사용하세요.
 
 ## 💾 데이터 저장
 
