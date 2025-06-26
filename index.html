@@ -473,6 +473,25 @@
             100% { transform: rotate(360deg); }
         }
 
+        .live-score-card {
+            transition: all 0.3s ease;
+        }
+
+        .live-score-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.15) !important;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+
+        .score-updated {
+            animation: pulse 0.5s ease;
+        }
+
         @media (max-width: 768px) {
             body {
                 padding: 10px;
@@ -624,9 +643,10 @@
 
         <div class="tabs">
             <div class="tab active" data-tab="schedule">📅 경기 일정</div>
-            <div class="tab" data-tab="groups">👥 조 편성</div>
+            <div class="tab" data-tab="groups">👥 조 편성과 승점현황</div>
             <div class="tab" data-tab="scores">📊 스코어 관리</div>
             <div class="tab" data-tab="stats">📈 통계</div>
+            <div class="tab" data-tab="admin">⚙️ 선수 관리</div>
         </div>
 
         <div class="content">
@@ -659,27 +679,27 @@
                             <td class="court-a">석환/성무(1조) : 종영/용무(2조)</td>
                             <td class="court-a score-display" id="score-1a">-</td>
                             <td class="court-a"><span class="match-status status-pending" id="status-1a">대기</span></td>
-                            <td class="court-b">경은/재성(3조) : 정언/남희(4조)</td>
+                            <td class="court-b">경은/재성(3조) : 정언/승호(4조)</td>
                             <td class="court-b score-display" id="score-1b">-</td>
                             <td class="court-b"><span class="match-status status-pending" id="status-1b">대기</span></td>
                         </tr>
                         <tr data-match="2">
                             <td>2경기</td>
                             <td>5:30-6:00</td>
-                            <td class="court-a">현숙/병수(1조) : 정은/승윤(3조)</td>
+                            <td class="court-a">현숙/병수(1조) : 경은/철규(3조)</td>
                             <td class="court-a score-display" id="score-2a">-</td>
                             <td class="court-a"><span class="match-status status-pending" id="status-2a">대기</span></td>
-                            <td class="court-b">이현/용국(2조) : 정언/승호(4조)</td>
+                            <td class="court-b">정수/용국(2조) : 승윤/남희(4조)</td>
                             <td class="court-b score-display" id="score-2b">-</td>
                             <td class="court-b"><span class="match-status status-pending" id="status-2b">대기</span></td>
                         </tr>
                         <tr data-match="3">
                             <td>3경기</td>
                             <td>6:00-6:30</td>
-                            <td class="court-a">성무/석환(1조) : 자우/남희(4조)</td>
+                            <td class="court-a">성무/석환(1조) : 자우/승호(4조)</td>
                             <td class="court-a score-display" id="score-3a">-</td>
                             <td class="court-a"><span class="match-status status-pending" id="status-3a">대기</span></td>
-                            <td class="court-b">용국/정수(2조) : 재성/영기(3조)</td>
+                            <td class="court-b">이현/정수(2조) : 재성/영기(3조)</td>
                             <td class="court-b score-display" id="score-3b">-</td>
                             <td class="court-b"><span class="match-status status-pending" id="status-3b">대기</span></td>
                         </tr>
@@ -689,7 +709,7 @@
                             <td class="court-a">지혜/병수(1조) : 정언/진석(4조)</td>
                             <td class="court-a score-display" id="score-4a">-</td>
                             <td class="court-a"><span class="match-status status-pending" id="status-4a">대기</span></td>
-                            <td class="court-b">상현/용무(2조) : 승윤/양규(3조)</td>
+                            <td class="court-b">상현/용무(2조) : 철규/양규(3조)</td>
                             <td class="court-b score-display" id="score-4b">-</td>
                             <td class="court-b"><span class="match-status status-pending" id="status-4b">대기</span></td>
                         </tr>
@@ -729,7 +749,57 @@
 
             <!-- 조 편성 탭 -->
             <div id="groups" class="tab-content">
-                <h2 style="margin-bottom: 20px; color: #2ecc71;">조 편성 현황</h2>
+                <h2 style="margin-bottom: 20px; color: #2ecc71;">조 편성과 승점현황</h2>
+                
+                <!-- 승점 계산 방식 안내 -->
+                <div style="background: #e8f5e9; padding: 20px; border-radius: 10px; margin-bottom: 30px; border: 2px solid #2ecc71;">
+                    <h3 style="color: #2ecc71; margin-bottom: 15px; display: flex; align-items: center; justify-content: space-between;">
+                        <span>📊 승점 계산 방식</span>
+                        <button onclick="toggleScoreExplanation()" style="background: #2ecc71; color: white; border: none; padding: 8px 16px; border-radius: 20px; cursor: pointer; font-size: 0.9em;">
+                            <span id="toggle-text">자세히 보기 ▼</span>
+                        </button>
+                    </h3>
+                    <div id="score-explanation" style="display: none; margin-top: 15px; line-height: 1.8;">
+                        <p style="margin-bottom: 10px;"><strong>🏆 승리:</strong> <span style="background: #2ecc71; color: white; padding: 4px 12px; border-radius: 15px; font-weight: bold;">3점</span></p>
+                        <p style="margin-bottom: 10px;"><strong>🤝 무승부:</strong> <span style="background: #f39c12; color: white; padding: 4px 12px; border-radius: 15px; font-weight: bold;">1점</span></p>
+                        <p style="margin-bottom: 10px;"><strong>😢 패배:</strong> <span style="background: #e74c3c; color: white; padding: 4px 12px; border-radius: 15px; font-weight: bold;">0점</span></p>
+                        <hr style="margin: 15px 0; border: none; border-top: 1px solid #27ae60;">
+                        <p style="font-size: 0.95em; color: #495057;">
+                            <strong>💡 순위 결정 방식:</strong><br>
+                            1순위: 승점이 높은 팀<br>
+                            2순위: 승점이 같을 경우 승리 횟수가 많은 팀<br>
+                            3순위: 득실차가 높은 팀 (추후 업데이트 예정)
+                        </p>
+                    </div>
+                </div>
+                
+                <!-- 실시간 승점 현황 -->
+                <div style="background: #f8f9fa; padding: 20px; border-radius: 15px; margin-bottom: 30px;">
+                    <h3 style="color: #2ecc71; margin-bottom: 20px;">🏅 실시간 승점 현황</h3>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
+                        <div class="live-score-card" style="background: white; padding: 20px; border-radius: 10px; text-align: center; box-shadow: 0 3px 10px rgba(0,0,0,0.1);">
+                            <h4 style="color: #333; margin-bottom: 10px;">1조</h4>
+                            <div style="font-size: 2.5em; font-weight: bold; color: #2ecc71;" id="live-group1-points">0</div>
+                            <div style="color: #666; margin-top: 5px;">승점</div>
+                        </div>
+                        <div class="live-score-card" style="background: white; padding: 20px; border-radius: 10px; text-align: center; box-shadow: 0 3px 10px rgba(0,0,0,0.1);">
+                            <h4 style="color: #333; margin-bottom: 10px;">2조</h4>
+                            <div style="font-size: 2.5em; font-weight: bold; color: #2ecc71;" id="live-group2-points">0</div>
+                            <div style="color: #666; margin-top: 5px;">승점</div>
+                        </div>
+                        <div class="live-score-card" style="background: white; padding: 20px; border-radius: 10px; text-align: center; box-shadow: 0 3px 10px rgba(0,0,0,0.1);">
+                            <h4 style="color: #333; margin-bottom: 10px;">3조</h4>
+                            <div style="font-size: 2.5em; font-weight: bold; color: #2ecc71;" id="live-group3-points">0</div>
+                            <div style="color: #666; margin-top: 5px;">승점</div>
+                        </div>
+                        <div class="live-score-card" style="background: white; padding: 20px; border-radius: 10px; text-align: center; box-shadow: 0 3px 10px rgba(0,0,0,0.1);">
+                            <h4 style="color: #333; margin-bottom: 10px;">4조</h4>
+                            <div style="font-size: 2.5em; font-weight: bold; color: #2ecc71;" id="live-group4-points">0</div>
+                            <div style="color: #666; margin-top: 5px;">승점</div>
+                        </div>
+                    </div>
+                </div>
+                
                 <div class="groups">
                     <div class="group" data-group="1조">
                         <h3>1조</h3>
@@ -764,7 +834,7 @@
                     <div class="group" data-group="3조">
                         <h3>3조</h3>
                         <p><strong>선수:</strong></p>
-                        <p>경은, 재성, 승윤, 영기, 양규, 영민</p>
+                        <p>경은, 재성, 철규, 영기, 양규, 영민</p>
                         <div class="group-stats">
                             <div class="stat-item">
                                 <span class="stat-label">승점:</span>
@@ -830,7 +900,7 @@
                     </div>
                     <div class="stat-card">
                         <h5>참가 선수</h5>
-                        <div class="number">23</div>
+                        <div class="number">22</div>
                     </div>
                     <div class="stat-card">
                         <h5>진행된 경기</h5>
@@ -844,6 +914,143 @@
                         </div>
                     </div>
                 </div>
+            <!-- 선수 관리 탭 -->
+            <div id="admin" class="tab-content">
+                <h2 style="margin-bottom: 20px; color: #2ecc71;">선수 관리</h2>
+                
+                <div style="background: #ffeaa7; padding: 15px; border-radius: 10px; margin-bottom: 20px;">
+                    <p style="margin: 0; color: #d63031;">
+                        <strong>⚠️ 주의:</strong> 선수 이름을 변경하면 해당 선수의 모든 경기 기록이 업데이트됩니다. 
+                        이미 입력된 스코어는 유지되지만, 선수 이름만 변경됩니다.
+                    </p>
+                </div>
+
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px;">
+                    <!-- 1조 선수 관리 -->
+                    <div style="background: white; padding: 20px; border-radius: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.1);">
+                        <h3 style="color: #2ecc71; margin-bottom: 15px;">1조 선수 관리</h3>
+                        <div id="group1-players">
+                            <div style="margin-bottom: 10px;">
+                                <label style="display: inline-block; width: 80px;">현숙:</label>
+                                <input type="text" value="현숙" data-group="1" data-original="현숙" style="padding: 5px; border: 1px solid #ddd; border-radius: 5px;">
+                            </div>
+                            <div style="margin-bottom: 10px;">
+                                <label style="display: inline-block; width: 80px;">지혜:</label>
+                                <input type="text" value="지혜" data-group="1" data-original="지혜" style="padding: 5px; border: 1px solid #ddd; border-radius: 5px;">
+                            </div>
+                            <div style="margin-bottom: 10px;">
+                                <label style="display: inline-block; width: 80px;">병수:</label>
+                                <input type="text" value="병수" data-group="1" data-original="병수" style="padding: 5px; border: 1px solid #ddd; border-radius: 5px;">
+                            </div>
+                            <div style="margin-bottom: 10px;">
+                                <label style="display: inline-block; width: 80px;">석환:</label>
+                                <input type="text" value="석환" data-group="1" data-original="석환" style="padding: 5px; border: 1px solid #ddd; border-radius: 5px;">
+                            </div>
+                            <div style="margin-bottom: 10px;">
+                                <label style="display: inline-block; width: 80px;">성무:</label>
+                                <input type="text" value="성무" data-group="1" data-original="성무" style="padding: 5px; border: 1px solid #ddd; border-radius: 5px;">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 2조 선수 관리 -->
+                    <div style="background: white; padding: 20px; border-radius: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.1);">
+                        <h3 style="color: #2ecc71; margin-bottom: 15px;">2조 선수 관리</h3>
+                        <div id="group2-players">
+                            <div style="margin-bottom: 10px;">
+                                <label style="display: inline-block; width: 80px;">이현:</label>
+                                <input type="text" value="이현" data-group="2" data-original="이현" style="padding: 5px; border: 1px solid #ddd; border-radius: 5px;">
+                            </div>
+                            <div style="margin-bottom: 10px;">
+                                <label style="display: inline-block; width: 80px;">용무:</label>
+                                <input type="text" value="용무" data-group="2" data-original="용무" style="padding: 5px; border: 1px solid #ddd; border-radius: 5px;">
+                            </div>
+                            <div style="margin-bottom: 10px;">
+                                <label style="display: inline-block; width: 80px;">종명:</label>
+                                <input type="text" value="종명" data-group="2" data-original="종명" style="padding: 5px; border: 1px solid #ddd; border-radius: 5px;">
+                            </div>
+                            <div style="margin-bottom: 10px;">
+                                <label style="display: inline-block; width: 80px;">용국:</label>
+                                <input type="text" value="용국" data-group="2" data-original="용국" style="padding: 5px; border: 1px solid #ddd; border-radius: 5px;">
+                            </div>
+                            <div style="margin-bottom: 10px;">
+                                <label style="display: inline-block; width: 80px;">정수:</label>
+                                <input type="text" value="정수" data-group="2" data-original="정수" style="padding: 5px; border: 1px solid #ddd; border-radius: 5px;">
+                            </div>
+                            <div style="margin-bottom: 10px;">
+                                <label style="display: inline-block; width: 80px;">상현:</label>
+                                <input type="text" value="상현" data-group="2" data-original="상현" style="padding: 5px; border: 1px solid #ddd; border-radius: 5px;">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 3조 선수 관리 -->
+                    <div style="background: white; padding: 20px; border-radius: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.1);">
+                        <h3 style="color: #2ecc71; margin-bottom: 15px;">3조 선수 관리</h3>
+                        <div id="group3-players">
+                            <div style="margin-bottom: 10px;">
+                                <label style="display: inline-block; width: 80px;">경은:</label>
+                                <input type="text" value="경은" data-group="3" data-original="경은" style="padding: 5px; border: 1px solid #ddd; border-radius: 5px;">
+                            </div>
+                            <div style="margin-bottom: 10px;">
+                                <label style="display: inline-block; width: 80px;">재성:</label>
+                                <input type="text" value="재성" data-group="3" data-original="재성" style="padding: 5px; border: 1px solid #ddd; border-radius: 5px;">
+                            </div>
+                            <div style="margin-bottom: 10px;">
+                                <label style="display: inline-block; width: 80px;">철규:</label>
+                                <input type="text" value="철규" data-group="3" data-original="철규" style="padding: 5px; border: 1px solid #ddd; border-radius: 5px;">
+                            </div>
+                            <div style="margin-bottom: 10px;">
+                                <label style="display: inline-block; width: 80px;">영기:</label>
+                                <input type="text" value="영기" data-group="3" data-original="영기" style="padding: 5px; border: 1px solid #ddd; border-radius: 5px;">
+                            </div>
+                            <div style="margin-bottom: 10px;">
+                                <label style="display: inline-block; width: 80px;">양규:</label>
+                                <input type="text" value="양규" data-group="3" data-original="양규" style="padding: 5px; border: 1px solid #ddd; border-radius: 5px;">
+                            </div>
+                            <div style="margin-bottom: 10px;">
+                                <label style="display: inline-block; width: 80px;">영민:</label>
+                                <input type="text" value="영민" data-group="3" data-original="영민" style="padding: 5px; border: 1px solid #ddd; border-radius: 5px;">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 4조 선수 관리 -->
+                    <div style="background: white; padding: 20px; border-radius: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.1);">
+                        <h3 style="color: #2ecc71; margin-bottom: 15px;">4조 선수 관리</h3>
+                        <div id="group4-players">
+                            <div style="margin-bottom: 10px;">
+                                <label style="display: inline-block; width: 80px;">정언:</label>
+                                <input type="text" value="정언" data-group="4" data-original="정언" style="padding: 5px; border: 1px solid #ddd; border-radius: 5px;">
+                            </div>
+                            <div style="margin-bottom: 10px;">
+                                <label style="display: inline-block; width: 80px;">남희:</label>
+                                <input type="text" value="남희" data-group="4" data-original="남희" style="padding: 5px; border: 1px solid #ddd; border-radius: 5px;">
+                            </div>
+                            <div style="margin-bottom: 10px;">
+                                <label style="display: inline-block; width: 80px;">자우:</label>
+                                <input type="text" value="자우" data-group="4" data-original="자우" style="padding: 5px; border: 1px solid #ddd; border-radius: 5px;">
+                            </div>
+                            <div style="margin-bottom: 10px;">
+                                <label style="display: inline-block; width: 80px;">승호:</label>
+                                <input type="text" value="승호" data-group="4" data-original="승호" style="padding: 5px; border: 1px solid #ddd; border-radius: 5px;">
+                            </div>
+                            <div style="margin-bottom: 10px;">
+                                <label style="display: inline-block; width: 80px;">진석:</label>
+                                <input type="text" value="진석" data-group="4" data-original="진석" style="padding: 5px; border: 1px solid #ddd; border-radius: 5px;">
+                            </div>
+                            <div style="margin-bottom: 10px;">
+                                <label style="display: inline-block; width: 80px;">승윤:</label>
+                                <input type="text" value="승윤" data-group="4" data-original="승윤" style="padding: 5px; border: 1px solid #ddd; border-radius: 5px;">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="margin-top: 30px; text-align: center;">
+                    <button onclick="updatePlayerNames()" class="btn" style="margin-right: 10px;">변경사항 저장</button>
+                    <button onclick="resetPlayerNames()" class="btn" style="background: #e74c3c;">원래대로 복원</button>
+                </div>
             </div>
         </div>
     </div>
@@ -853,18 +1060,32 @@
     </div>
 
     <script>
+        // 승점 계산 방식 토글
+        function toggleScoreExplanation() {
+            const explanation = document.getElementById('score-explanation');
+            const toggleText = document.getElementById('toggle-text');
+            
+            if (explanation.style.display === 'none') {
+                explanation.style.display = 'block';
+                toggleText.textContent = '접기 ▲';
+            } else {
+                explanation.style.display = 'none';
+                toggleText.textContent = '자세히 보기 ▼';
+            }
+        }
+
         // 전역 변수
         let savedScores = {};
         const totalMatches = 14;
         const matchData = {
             '1a': { team1: '석환/성무(1조)', team2: '종영/용무(2조)' },
-            '1b': { team1: '경은/재성(3조)', team2: '정언/남희(4조)' },
-            '2a': { team1: '현숙/병수(1조)', team2: '정은/승윤(3조)' },
-            '2b': { team1: '이현/용국(2조)', team2: '정언/승호(4조)' },
-            '3a': { team1: '성무/석환(1조)', team2: '자우/남희(4조)' },
-            '3b': { team1: '용국/정수(2조)', team2: '재성/영기(3조)' },
+            '1b': { team1: '경은/재성(3조)', team2: '정언/승호(4조)' },
+            '2a': { team1: '현숙/병수(1조)', team2: '경은/철규(3조)' },
+            '2b': { team1: '정수/용국(2조)', team2: '승윤/남희(4조)' },
+            '3a': { team1: '성무/석환(1조)', team2: '자우/승호(4조)' },
+            '3b': { team1: '이현/정수(2조)', team2: '재성/영기(3조)' },
             '4a': { team1: '지혜/병수(1조)', team2: '정언/진석(4조)' },
-            '4b': { team1: '상현/용무(2조)', team2: '승윤/양규(3조)' },
+            '4b': { team1: '상현/용무(2조)', team2: '철규/양규(3조)' },
             '5a': { team1: '석환/현숙(1조)', team2: '영기/경은(3조)' },
             '5b': { team1: '종명/정수(2조)', team2: '자우/승호(4조)' },
             '6a': { team1: '지혜/성무(1조)', team2: '이현/상현(2조)' },
@@ -993,6 +1214,16 @@
             updateGroupStats();
             updateButtonText(matchId);
             
+            // 승점 업데이트 시 애니메이션 효과
+            const match = matchData[matchId];
+            const team1Group = parseInt(match.team1.match(/\((\d+)조\)/)[1]);
+            const team2Group = parseInt(match.team2.match(/\((\d+)조\)/)[1]);
+            
+            animateScoreUpdate(team1Group);
+            if (team1Group !== team2Group) {
+                animateScoreUpdate(team2Group);
+            }
+            
             showNotification('스코어가 저장되었습니다!', 2000);
         }
 
@@ -1079,6 +1310,23 @@
             for (let i = 1; i <= 4; i++) {
                 document.getElementById(`group${i}-points`).textContent = groupStats[i].points;
                 document.getElementById(`group${i}-wins`).textContent = groupStats[i].wins;
+                
+                // 실시간 승점 현황도 업데이트
+                const livePointsElement = document.getElementById(`live-group${i}-points`);
+                if (livePointsElement) {
+                    livePointsElement.textContent = groupStats[i].points;
+                    
+                    // 승점에 따른 색상 변경
+                    if (groupStats[i].points > 0) {
+                        livePointsElement.style.color = '#2ecc71';
+                        if (groupStats[i].points >= 9) {
+                            livePointsElement.style.color = '#f39c12'; // 주황색
+                        }
+                        if (groupStats[i].points >= 15) {
+                            livePointsElement.style.color = '#e74c3c'; // 빨간색
+                        }
+                    }
+                }
             }
             
             // 순위표 업데이트
@@ -1122,6 +1370,123 @@
             });
             
             rankingBody.innerHTML = rankingHTML;
+        }
+
+        // 승점 업데이트 애니메이션
+        function animateScoreUpdate(groupNumber) {
+            const liveScoreElement = document.getElementById(`live-group${groupNumber}-points`);
+            if (liveScoreElement) {
+                liveScoreElement.classList.add('score-updated');
+                setTimeout(() => {
+                    liveScoreElement.classList.remove('score-updated');
+                }, 500);
+            }
+        }
+
+        // 선수 이름 변경 함수
+        function updatePlayerNames() {
+            const inputs = document.querySelectorAll('#admin input[type="text"]');
+            let hasChanges = false;
+            
+            inputs.forEach(input => {
+                const originalName = input.getAttribute('data-original');
+                const newName = input.value.trim();
+                const group = input.getAttribute('data-group');
+                
+                if (originalName !== newName && newName !== '') {
+                    // matchData 업데이트
+                    Object.keys(matchData).forEach(matchId => {
+                        const match = matchData[matchId];
+                        match.team1 = match.team1.replace(new RegExp(originalName, 'g'), newName);
+                        match.team2 = match.team2.replace(new RegExp(originalName, 'g'), newName);
+                    });
+                    
+                    // 화면의 모든 표시 업데이트
+                    updateAllPlayerDisplays(originalName, newName, group);
+                    
+                    // 새로운 원본 이름으로 설정
+                    input.setAttribute('data-original', newName);
+                    hasChanges = true;
+                }
+            });
+            
+            if (hasChanges) {
+                // 모든 화면 업데이트
+                createScoreInputs();
+                updateAllDisplays();
+                showNotification('선수 이름이 성공적으로 변경되었습니다!', 3000);
+            } else {
+                showNotification('변경된 내용이 없습니다.', 2000);
+            }
+        }
+
+        // 선수 이름 원래대로 복원
+        function resetPlayerNames() {
+            if (!confirm('모든 선수 이름을 원래대로 복원하시겠습니까?')) {
+                return;
+            }
+            
+            // 원래 matchData로 복원
+            const originalMatchData = {
+                '1a': { team1: '석환/성무(1조)', team2: '종영/용무(2조)' },
+                '1b': { team1: '경은/재성(3조)', team2: '정언/승호(4조)' },
+                '2a': { team1: '현숙/병수(1조)', team2: '경은/철규(3조)' },
+                '2b': { team1: '정수/용국(2조)', team2: '승윤/남희(4조)' },
+                '3a': { team1: '성무/석환(1조)', team2: '자우/승호(4조)' },
+                '3b': { team1: '이현/정수(2조)', team2: '재성/영기(3조)' },
+                '4a': { team1: '지혜/병수(1조)', team2: '정언/진석(4조)' },
+                '4b': { team1: '상현/용무(2조)', team2: '철규/양규(3조)' },
+                '5a': { team1: '석환/현숙(1조)', team2: '영기/경은(3조)' },
+                '5b': { team1: '종명/정수(2조)', team2: '자우/승호(4조)' },
+                '6a': { team1: '지혜/성무(1조)', team2: '이현/상현(2조)' },
+                '6b': { team1: '영민/재성(3조)', team2: '진석/남희(4조)' },
+                '7a': { team1: '지혜/현숙(1조)', team2: '영민/양규(3조)' },
+                '7b': { team1: '이현/용국(2조)', team2: '정언/자우(4조)' }
+            };
+            
+            Object.keys(originalMatchData).forEach(key => {
+                matchData[key] = { ...originalMatchData[key] };
+            });
+            
+            // 입력 필드 초기화
+            const originalPlayers = {
+                1: ['현숙', '지혜', '병수', '석환', '성무'],
+                2: ['이현', '용무', '종명', '용국', '정수', '상현'],
+                3: ['경은', '재성', '철규', '영기', '양규', '영민'],
+                4: ['정언', '남희', '자우', '승호', '진석', '승윤']
+            };
+            
+            Object.keys(originalPlayers).forEach(group => {
+                const inputs = document.querySelectorAll(`#group${group}-players input`);
+                originalPlayers[group].forEach((name, index) => {
+                    if (inputs[index]) {
+                        inputs[index].value = name;
+                        inputs[index].setAttribute('data-original', name);
+                    }
+                });
+            });
+            
+            // 화면 업데이트
+            location.reload(); // 전체 새로고침으로 확실하게 초기화
+        }
+
+        // 화면의 모든 선수 이름 표시 업데이트
+        function updateAllPlayerDisplays(oldName, newName, group) {
+            // 일정표 업데이트
+            const scheduleCells = document.querySelectorAll('.schedule-table td');
+            scheduleCells.forEach(cell => {
+                if (cell.textContent.includes(oldName)) {
+                    cell.textContent = cell.textContent.replace(new RegExp(oldName, 'g'), newName);
+                }
+            });
+            
+            // 조 편성 업데이트
+            const groupElements = document.querySelectorAll('.group p');
+            groupElements.forEach(p => {
+                if (p.textContent.includes(oldName)) {
+                    p.textContent = p.textContent.replace(new RegExp(oldName, 'g'), newName);
+                }
+            });
         }
 
         // 페이지 로드 시 초기화
