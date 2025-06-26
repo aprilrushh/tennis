@@ -111,10 +111,14 @@
         .tab-content {
             display: none;
             animation: fadeIn 0.5s ease;
+            opacity: 0;
+            visibility: hidden;
         }
 
         .tab-content.active {
             display: block;
+            opacity: 1;
+            visibility: visible;
         }
 
         @keyframes fadeIn {
@@ -1122,14 +1126,27 @@
 
         // 탭 전환 기능
         function showTab(tabName, tabElement) {
+            console.log('Showing tab:', tabName); // 디버깅용
+            
             const tabs = document.querySelectorAll('.tab');
             const contents = document.querySelectorAll('.tab-content');
             
+            // 모든 탭과 콘텐츠 비활성화
             tabs.forEach(tab => tab.classList.remove('active'));
             contents.forEach(content => content.classList.remove('active'));
             
-            tabElement.classList.add('active');
-            document.getElementById(tabName).classList.add('active');
+            // 선택된 탭과 콘텐츠 활성화
+            if (tabElement) {
+                tabElement.classList.add('active');
+            }
+            
+            const targetContent = document.getElementById(tabName);
+            if (targetContent) {
+                targetContent.classList.add('active');
+                console.log('Tab content activated:', tabName); // 디버깅용
+            } else {
+                console.error('Tab content not found:', tabName); // 디버깅용
+            }
         }
 
         // 이벤트 리스너를 사용한 탭 기능 (모바일 호환)
@@ -1140,14 +1157,18 @@
                 // 클릭 이벤트
                 tab.addEventListener('click', function(e) {
                     e.preventDefault();
+                    e.stopPropagation();
                     const tabName = this.getAttribute('data-tab');
+                    console.log('Tab clicked:', tabName); // 디버깅용
                     showTab(tabName, this);
                 });
                 
                 // 터치 이벤트 (모바일)
                 tab.addEventListener('touchstart', function(e) {
                     e.preventDefault();
+                    e.stopPropagation();
                     const tabName = this.getAttribute('data-tab');
+                    console.log('Tab touched:', tabName); // 디버깅용
                     showTab(tabName, this);
                 });
             });
