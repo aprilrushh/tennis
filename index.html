@@ -945,6 +945,8 @@
                         </div>
                     </div>
                 </div>
+            </div>
+
             <!-- 선수 관리 탭 -->
             <div id="admin" class="tab-content">
                 <h2 style="margin-bottom: 20px; color: #2ecc71;">선수 관리</h2>
@@ -982,6 +984,7 @@
                                 <input type="text" value="성무" data-group="1" data-original="성무" style="padding: 5px; border: 1px solid #ddd; border-radius: 5px;">
                             </div>
                         </div>
+                        <button onclick="addPlayer(1)" class="btn" style="background: #27ae60; margin-top: 10px;">선수 추가</button>
                     </div>
 
                     <!-- 2조 선수 관리 -->
@@ -1013,6 +1016,7 @@
                                 <input type="text" value="상현" data-group="2" data-original="상현" style="padding: 5px; border: 1px solid #ddd; border-radius: 5px;">
                             </div>
                         </div>
+                        <button onclick="addPlayer(2)" class="btn" style="background: #27ae60; margin-top: 10px;">선수 추가</button>
                     </div>
 
                     <!-- 3조 선수 관리 -->
@@ -1044,6 +1048,7 @@
                                 <input type="text" value="영민" data-group="3" data-original="영민" style="padding: 5px; border: 1px solid #ddd; border-radius: 5px;">
                             </div>
                         </div>
+                        <button onclick="addPlayer(3)" class="btn" style="background: #27ae60; margin-top: 10px;">선수 추가</button>
                     </div>
 
                     <!-- 4조 선수 관리 -->
@@ -1075,6 +1080,7 @@
                                 <input type="text" value="승윤" data-group="4" data-original="승윤" style="padding: 5px; border: 1px solid #ddd; border-radius: 5px;">
                             </div>
                         </div>
+                        <button onclick="addPlayer(4)" class="btn" style="background: #27ae60; margin-top: 10px;">선수 추가</button>
                     </div>
                 </div>
 
@@ -1481,91 +1487,105 @@
             }
         }
 
-        // 선수 이름 변경 함수
-        function updatePlayerNames() {
-            const inputs = document.querySelectorAll('#admin input[type="text"]');
-            let hasChanges = false;
+        // 선수 추가 함수
+        function addPlayer(groupNumber) {
+            const groupContainer = document.getElementById(`group${groupNumber}-players`);
+            const playerCount = groupContainer.children.length;
+            const newPlayerId = `new-player-${groupNumber}-${Date.now()}`;
             
-            inputs.forEach(input => {
-                const originalName = input.getAttribute('data-original');
-                const newName = input.value.trim();
-                const group = input.getAttribute('data-group');
-                
-                if (originalName !== newName && newName !== '') {
-                    // matchData 업데이트
-                    Object.keys(matchData).forEach(matchId => {
-                        const match = matchData[matchId];
-                        match.team1 = match.team1.replace(new RegExp(originalName, 'g'), newName);
-                        match.team2 = match.team2.replace(new RegExp(originalName, 'g'), newName);
-                    });
-                    
-                    // 화면의 모든 표시 업데이트
-                    updateAllPlayerDisplays(originalName, newName, group);
-                    
-                    // 새로운 원본 이름으로 설정
-                    input.setAttribute('data-original', newName);
-                    hasChanges = true;
-                }
-            });
+            const newPlayerDiv = document.createElement('div');
+            newPlayerDiv.style.marginBottom = '10px';
+            newPlayerDiv.innerHTML = `
+                <label style="display: inline-block; width: 80px;">새선수:</label>
+                <input type="text" value="새선수" data-group="${groupNumber}" data-original="새선수" style="padding: 5px; border: 1px solid #ddd; border-radius: 5px;">
+                <button onclick="removePlayer(this)" class="btn" style="background: #e74c3c; margin-left: 10px; padding: 5px 10px; font-size: 12px;">삭제</button>
+            `;
             
-            if (hasChanges) {
-                // 모든 화면 업데이트
-                createScoreInputs();
-                updateAllDisplays();
-                showNotification('선수 이름이 성공적으로 변경되었습니다!', 3000);
-            } else {
-                showNotification('변경된 내용이 없습니다.', 2000);
-            }
+            groupContainer.appendChild(newPlayerDiv);
+            showNotification(`${groupNumber}조에 새 선수가 추가되었습니다.`);
         }
 
-        // 선수 이름 원래대로 복원
-        function resetPlayerNames() {
-            if (!confirm('모든 선수 이름을 원래대로 복원하시겠습니까?')) {
+        // 선수 삭제 함수
+        function removePlayer(button) {
+            const playerDiv = button.parentElement;
+            const playerName = playerDiv.querySelector('input').value;
+            const groupNumber = playerDiv.querySelector('input').getAttribute('data-group');
+            
+            // 기본 선수는 삭제 불가
+            const originalName = playerDiv.querySelector('input').getAttribute('data-original');
+            if (originalName !== '새선수') {
+                showNotification('기본 선수는 삭제할 수 없습니다.', 2000);
                 return;
             }
             
-            // 원래 matchData로 복원
-            const originalMatchData = {
-                '1a': { team1: '석환/성무(1조)', team2: '종영/용무(2조)' },
-                '1b': { team1: '경은/재성(3조)', team2: '정언/승호(4조)' },
-                '2a': { team1: '현숙/병수(1조)', team2: '경은/철규(3조)' },
-                '2b': { team1: '정수/용국(2조)', team2: '승윤/남희(4조)' },
-                '3a': { team1: '성무/석환(1조)', team2: '자우/승호(4조)' },
-                '3b': { team1: '이현/정수(2조)', team2: '재성/영기(3조)' },
-                '4a': { team1: '지혜/병수(1조)', team2: '정언/진석(4조)' },
-                '4b': { team1: '상현/용무(2조)', team2: '철규/양규(3조)' },
-                '5a': { team1: '석환/현숙(1조)', team2: '영기/경은(3조)' },
-                '5b': { team1: '종명/정수(2조)', team2: '자우/승호(4조)' },
-                '6a': { team1: '지혜/성무(1조)', team2: '이현/상현(2조)' },
-                '6b': { team1: '영민/재성(3조)', team2: '진석/남희(4조)' },
-                '7a': { team1: '지혜/현숙(1조)', team2: '영민/양규(3조)' },
-                '7b': { team1: '이현/용국(2조)', team2: '정언/자우(4조)' }
-            };
+            playerDiv.remove();
+            showNotification(`${groupNumber}조에서 ${playerName} 선수가 삭제되었습니다.`);
+        }
+
+        // 선수 이름 업데이트 함수 (기존 함수 수정)
+        function updatePlayerNames() {
+            const inputs = document.querySelectorAll('#admin input[type="text"]');
+            let updatedCount = 0;
             
-            Object.keys(originalMatchData).forEach(key => {
-                matchData[key] = { ...originalMatchData[key] };
-            });
-            
-            // 입력 필드 초기화
-            const originalPlayers = {
-                1: ['현숙', '지혜', '병수', '석환', '성무'],
-                2: ['이현', '용무', '종명', '용국', '정수', '상현'],
-                3: ['경은', '재성', '철규', '영기', '양규', '영민'],
-                4: ['정언', '남희', '자우', '승호', '진석', '승윤']
-            };
-            
-            Object.keys(originalPlayers).forEach(group => {
-                const inputs = document.querySelectorAll(`#group${group}-players input`);
-                originalPlayers[group].forEach((name, index) => {
-                    if (inputs[index]) {
-                        inputs[index].value = name;
-                        inputs[index].setAttribute('data-original', name);
+            inputs.forEach(input => {
+                const newName = input.value.trim();
+                const originalName = input.getAttribute('data-original');
+                const group = input.getAttribute('data-group');
+                
+                if (newName && newName !== originalName) {
+                    // 모든 경기 데이터에서 해당 선수 이름 업데이트
+                    Object.keys(savedScores).forEach(matchId => {
+                        const match = savedScores[matchId];
+                        if (match.team1 && match.team1.includes(originalName)) {
+                            match.team1 = match.team1.replace(originalName, newName);
+                        }
+                        if (match.team2 && match.team2.includes(originalName)) {
+                            match.team2 = match.team2.replace(originalName, newName);
+                        }
+                    });
+                    
+                    // 원래 이름 업데이트 (새로 추가된 선수의 경우)
+                    if (originalName === '새선수') {
+                        input.setAttribute('data-original', newName);
                     }
-                });
+                    
+                    updatedCount++;
+                }
             });
             
-            // 화면 업데이트
-            location.reload(); // 전체 새로고침으로 확실하게 초기화
+            if (updatedCount > 0) {
+                saveData();
+                updateAllDisplays();
+                showNotification(`${updatedCount}명의 선수 이름이 업데이트되었습니다.`);
+            } else {
+                showNotification('변경된 선수 이름이 없습니다.');
+            }
+        }
+
+        // 선수 이름 초기화 함수 (기존 함수 수정)
+        function resetPlayerNames() {
+            const inputs = document.querySelectorAll('#admin input[type="text"]');
+            let resetCount = 0;
+            
+            inputs.forEach(input => {
+                const originalName = input.getAttribute('data-original');
+                if (input.value !== originalName) {
+                    input.value = originalName;
+                    resetCount++;
+                }
+            });
+            
+            if (resetCount > 0) {
+                // 새로 추가된 선수들 제거
+                const newPlayers = document.querySelectorAll('#admin input[data-original="새선수"]');
+                newPlayers.forEach(input => {
+                    input.parentElement.remove();
+                });
+                
+                showNotification('선수 이름이 원래대로 복원되었습니다.');
+            } else {
+                showNotification('복원할 변경사항이 없습니다.');
+            }
         }
 
         // 화면의 모든 선수 이름 표시 업데이트
