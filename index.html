@@ -1481,38 +1481,40 @@
             });
         }
 
-        // 스코어 입력 폼 생성
+        // 스코어 입력 생성
         function createScoreInputs() {
             const container = document.getElementById('score-inputs');
+            if (!container) return;
+            
             container.innerHTML = '';
-
+            
             Object.keys(matchData).forEach(matchId => {
                 const match = matchData[matchId];
-                const matchNumber = matchId.charAt(0);
-                const court = matchId.charAt(1) === 'a' ? 'A코트' : 'B코트';
+                const savedScore = savedScores[matchId] || { team1Score: '', team2Score: '' };
                 
                 const scoreCard = document.createElement('div');
                 scoreCard.className = 'score-card';
                 scoreCard.innerHTML = `
-                    <h4>${matchNumber}경기 - ${court}</h4>
+                    <h4>${matchId.toUpperCase()} 경기</h4>
                     <div class="score-input">
-                        <span>${match.team1}</span>
-                        <input type="number" id="match${matchId}-team1" min="0" max="99" placeholder="0">
-                        <span>:</span>
-                        <input type="number" id="match${matchId}-team2" min="0" max="99" placeholder="0">
-                        <span>${match.team2}</span>
+                        <div style="flex: 1; text-align: center;">
+                            <div style="font-weight: bold; margin-bottom: 5px;">${match.team1}</div>
+                            <input type="number" min="0" max="99" value="${savedScore.team1Score}" 
+                                   onchange="updateScore('${matchId}', 'team1Score', this.value)" 
+                                   style="width: 60px; padding: 8px; border: 2px solid #e9ecef; border-radius: 8px; text-align: center;">
+                        </div>
+                        <div style="display: flex; align-items: center; margin: 0 15px; font-size: 1.5em; font-weight: bold; color: #2ecc71;">VS</div>
+                        <div style="flex: 1; text-align: center;">
+                            <div style="font-weight: bold; margin-bottom: 5px;">${match.team2}</div>
+                            <input type="number" min="0" max="99" value="${savedScore.team2Score}" 
+                                   onchange="updateScore('${matchId}', 'team2Score', this.value)" 
+                                   style="width: 60px; padding: 8px; border: 2px solid #e9ecef; border-radius: 8px; text-align: center;">
+                        </div>
                     </div>
-                    <button class="btn" onclick="saveScore('${matchId}')" id="btn-${matchId}">
-                        ${savedScores[matchId] ? '수정' : '저장'}
-                    </button>
+                    <button onclick="saveMatchScore('${matchId}')" class="btn">스코어 저장</button>
                 `;
+                
                 container.appendChild(scoreCard);
-
-                // 저장된 스코어가 있으면 입력 필드에 표시
-                if (savedScores[matchId]) {
-                    document.getElementById(`match${matchId}-team1`).value = savedScores[matchId].team1;
-                    document.getElementById(`match${matchId}-team2`).value = savedScores[matchId].team2;
-                }
             });
         }
 
@@ -1556,20 +1558,37 @@
         }
 
         // 일정표 스코어 업데이트
-        function updateScheduleDisplay(matchId) {
-            const scoreElement = document.getElementById(`score-${matchId}`);
-            const statusElement = document.getElementById(`status-${matchId}`);
-            
-            if (savedScores[matchId]) {
-                const score = savedScores[matchId];
-                scoreElement.textContent = `${score.team1} - ${score.team2}`;
-                statusElement.textContent = '완료';
-                statusElement.className = 'match-status status-completed';
-            } else {
-                scoreElement.textContent = '-';
-                statusElement.textContent = '대기';
-                statusElement.className = 'match-status status-pending';
-            }
+        function updateScheduleDisplay() {
+            Object.keys(matchData).forEach(matchId => {
+                const match = matchData[matchId];
+                const savedScore = savedScores[matchId];
+                
+                // 스코어 표시 업데이트
+                const scoreElement = document.getElementById(`score-${matchId}`);
+                if (scoreElement) {
+                    if (savedScore && savedScore.team1Score && savedScore.team2Score) {
+                        scoreElement.textContent = `${savedScore.team1Score} : ${savedScore.team2Score}`;
+                        scoreElement.style.color = '#2ecc71';
+                        scoreElement.style.fontWeight = 'bold';
+                    } else {
+                        scoreElement.textContent = '-';
+                        scoreElement.style.color = '#666';
+                        scoreElement.style.fontWeight = 'normal';
+                    }
+                }
+                
+                // 상태 표시 업데이트
+                const statusElement = document.getElementById(`status-${matchId}`);
+                if (statusElement) {
+                    if (savedScore && savedScore.team1Score && savedScore.team2Score) {
+                        statusElement.textContent = '완료';
+                        statusElement.className = 'match-status status-completed';
+                    } else {
+                        statusElement.textContent = '대기';
+                        statusElement.className = 'match-status status-pending';
+                    }
+                }
+            });
         }
 
         // 모든 일정표 업데이트
@@ -1592,36 +1611,37 @@
 
         // 통계 업데이트
         function updateStats() {
-            const completedMatches = Object.keys(savedScores).length;
+            const completedMatches = Object.keys(savedScores).filter(matchId => {
+                const score = savedScores[matchId];
+                return score && score.team1Score && score.team2Score;
+            }).length;
+            
             const progress = Math.round((completedMatches / totalMatches) * 100);
             
             document.getElementById('completed-matches').textContent = completedMatches;
-            document.getElementById('progress').textContent = progress + '%';
-            document.getElementById('progress-fill').style.width = progress + '%';
+            document.getElementById('progress').textContent = `${progress}%`;
+            document.getElementById('progress-fill').style.width = `${progress}%`;
         }
 
-        // 조별 승점 계산
-        function calculateGroupPoints() {
-            const groupStats = {
-                1: { points: 0, wins: 0 },
-                2: { points: 0, wins: 0 },
-                3: { points: 0, wins: 0 },
-                4: { points: 0, wins: 0 }
-            };
-
+        // 그룹 통계 업데이트
+        function updateGroupStats() {
+            const groupStats = { 1: { points: 0, wins: 0 }, 2: { points: 0, wins: 0 }, 3: { points: 0, wins: 0 }, 4: { points: 0, wins: 0 } };
+            
             Object.keys(savedScores).forEach(matchId => {
                 const score = savedScores[matchId];
+                if (!score || !score.team1Score || !score.team2Score) return;
+                
                 const match = matchData[matchId];
+                const team1Group = extractGroupNumber(match.team1);
+                const team2Group = extractGroupNumber(match.team2);
                 
-                // 팀1과 팀2의 조 추출
-                const team1Group = parseInt(match.team1.match(/\((\d+)조\)/)[1]);
-                const team2Group = parseInt(match.team2.match(/\((\d+)조\)/)[1]);
+                const team1Score = parseInt(score.team1Score);
+                const team2Score = parseInt(score.team2Score);
                 
-                // 승점 계산 (승리: 3점, 무승부: 1점, 패배: 0점)
-                if (score.team1 > score.team2) {
+                if (team1Score > team2Score) {
                     groupStats[team1Group].points += 3;
                     groupStats[team1Group].wins += 1;
-                } else if (score.team1 < score.team2) {
+                } else if (team1Score < team2Score) {
                     groupStats[team2Group].points += 3;
                     groupStats[team2Group].wins += 1;
                 } else {
@@ -1629,78 +1649,47 @@
                     groupStats[team2Group].points += 1;
                 }
             });
-
-            return groupStats;
-        }
-
-        // 조별 승점 표시 업데이트
-        function updateGroupStats() {
-            const groupStats = calculateGroupPoints();
             
-            // 각 조별 승점 표시
-            for (let i = 1; i <= 4; i++) {
-                document.getElementById(`group${i}-points`).textContent = groupStats[i].points;
-                document.getElementById(`group${i}-wins`).textContent = groupStats[i].wins;
-                
-                // 실시간 승점 현황도 업데이트
-                const livePointsElement = document.getElementById(`live-group${i}-points`);
-                if (livePointsElement) {
-                    livePointsElement.textContent = groupStats[i].points;
-                    
-                    // 승점에 따른 색상 변경
-                    if (groupStats[i].points > 0) {
-                        livePointsElement.style.color = '#2ecc71';
-                        if (groupStats[i].points >= 9) {
-                            livePointsElement.style.color = '#f39c12'; // 주황색
-                        }
-                        if (groupStats[i].points >= 15) {
-                            livePointsElement.style.color = '#e74c3c'; // 빨간색
-                        }
-                    }
-                }
-            }
+            // 그룹별 통계 업데이트
+            Object.keys(groupStats).forEach(groupNum => {
+                const stats = groupStats[groupNum];
+                document.getElementById(`group${groupNum}-points`).textContent = stats.points;
+                document.getElementById(`group${groupNum}-wins`).textContent = stats.wins;
+                document.getElementById(`live-group${groupNum}-points`).textContent = stats.points;
+            });
             
             // 순위표 업데이트
             updateRankingTable(groupStats);
         }
 
+        // 그룹 번호 추출 함수
+        function extractGroupNumber(teamName) {
+            const match = teamName.match(/\((\d+)조\)/);
+            return match ? parseInt(match[1]) : 0;
+        }
+
         // 순위표 업데이트
         function updateRankingTable(groupStats) {
             const rankingBody = document.getElementById('ranking-body');
-            const rankings = [];
+            if (!rankingBody) return;
             
-            // 순위 데이터 생성
-            for (let i = 1; i <= 4; i++) {
-                rankings.push({
-                    group: i,
-                    points: groupStats[i].points,
-                    wins: groupStats[i].wins
-                });
-            }
-            
-            // 승점 기준으로 정렬 (동점시 승리 수로 정렬)
-            rankings.sort((a, b) => {
-                if (b.points !== a.points) {
-                    return b.points - a.points;
-                }
+            const rankings = Object.keys(groupStats).map(groupNum => ({
+                group: groupNum,
+                points: groupStats[groupNum].points,
+                wins: groupStats[groupNum].wins
+            })).sort((a, b) => {
+                if (b.points !== a.points) return b.points - a.points;
                 return b.wins - a.wins;
             });
             
-            // 순위표 HTML 생성
-            let rankingHTML = '';
-            rankings.forEach((rank, index) => {
-                const rankClass = index < 3 ? `rank-${index + 1}` : '';
-                rankingHTML += `
-                    <div class="ranking-row ${rankClass}">
-                        <div class="rank-number">${index + 1}</div>
-                        <div class="group-name">${rank.group}조</div>
-                        <div class="points">${rank.points}점</div>
-                        <div class="wins">${rank.wins}승</div>
-                    </div>
-                `;
-            });
-            
-            rankingBody.innerHTML = rankingHTML;
+            rankingBody.innerHTML = rankings.map((rank, index) => `
+                <div class="ranking-row" style="display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; padding: 10px; border-bottom: 1px solid #e9ecef;">
+                    <span style="font-weight: bold; color: #2ecc71;">${index + 1}</span>
+                    <span>${rank.group}조</span>
+                    <span style="font-weight: bold;">${rank.points}</span>
+                    <span>${rank.wins}</span>
+                </div>
+            `).join('');
         }
 
         // 승점 업데이트 애니메이션
@@ -1967,6 +1956,74 @@
             3: ['경은(조장)', '재성', '철규', '영기', '양규'],
             4: ['정언(조장)', '남희', '자우', '승호', '승윤']
         };
+
+        // 스코어 업데이트 함수
+        function updateScore(matchId, field, value) {
+            if (!savedScores[matchId]) {
+                savedScores[matchId] = {};
+            }
+            savedScores[matchId][field] = value;
+        }
+
+        // 경기 스코어 저장 함수
+        function saveMatchScore(matchId) {
+            const score = savedScores[matchId];
+            if (!score || !score.team1Score || !score.team2Score) {
+                showNotification('양 팀의 스코어를 모두 입력해주세요.');
+                return;
+            }
+            
+            // Firebase에 저장
+            if (isConnected && database) {
+                database.ref(`scores/${matchId}`).set({
+                    ...score,
+                    updatedAt: firebase.database.ServerValue.TIMESTAMP
+                });
+            } else {
+                saveData();
+            }
+            
+            // 일정표 업데이트
+            updateScheduleDisplay();
+            updateStats();
+            updateGroupStats();
+            
+            showNotification(`${matchId.toUpperCase()} 경기 스코어가 저장되었습니다.`);
+        }
+
+        // 기존 스코어 저장 함수 (호환성 유지)
+        function saveScore(matchId) {
+            const team1Score = document.getElementById(`match${matchId}-team1`).value;
+            const team2Score = document.getElementById(`match${matchId}-team2`).value;
+            
+            if (!team1Score || !team2Score) {
+                showNotification('양 팀의 스코어를 모두 입력해주세요.');
+                return;
+            }
+            
+            savedScores[matchId] = {
+                team1: team1Score,
+                team2: team2Score
+            };
+            
+            // Firebase에 저장
+            if (isConnected && database) {
+                database.ref(`scores/${matchId}`).set({
+                    team1: team1Score,
+                    team2: team2Score,
+                    updatedAt: firebase.database.ServerValue.TIMESTAMP
+                });
+            } else {
+                saveData();
+            }
+            
+            // 일정표 업데이트
+            updateScheduleDisplay();
+            updateStats();
+            updateGroupStats();
+            
+            showNotification(`${matchId.toUpperCase()} 경기 스코어가 저장되었습니다.`);
+        }
     </script>
 </body>
 </html>
