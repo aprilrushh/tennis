@@ -164,6 +164,12 @@
             display: block !important;
             visibility: visible !important;
             opacity: 1 !important;
+            position: relative !important;
+            z-index: 10 !important;
+        }
+
+        #scores.tab-content {
+            min-height: 400px !important;
         }
 
         #score-inputs {
@@ -171,6 +177,8 @@
             grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)) !important;
             gap: 20px !important;
             visibility: visible !important;
+            opacity: 1 !important;
+            min-height: 200px !important;
         }
 
         .score-card {
@@ -182,209 +190,44 @@
             border: 2px solid transparent !important;
             display: block !important;
             visibility: visible !important;
+            opacity: 1 !important;
+            position: relative !important;
+            z-index: 5 !important;
         }
 
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .schedule-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-bottom: 30px;
-            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.05);
-            border-radius: 10px;
-            overflow: hidden;
-            font-size: clamp(0.8em, 2vw, 1em);
-        }
-
-        .schedule-table th,
-        .schedule-table td {
-            padding: 12px 8px;
-            text-align: center;
-            border: 1px solid #e9ecef;
-            vertical-align: middle;
-        }
-
-        .schedule-table th {
-            background: #2ecc71;
-            color: white;
-            font-weight: bold;
-            text-transform: uppercase;
-            font-size: 0.9em;
-        }
-
-        .schedule-table tr:nth-child(even) {
-            background: #f8f9fa;
-        }
-
-        .schedule-table tr:hover {
-            background: #e8f5e9;
-            transform: scale(1.005);
-            transition: all 0.3s ease;
-        }
-
-        .court-a {
-            background: #e3f2fd !important;
-        }
-
-        .court-b {
-            background: #fff3e0 !important;
-        }
-
-        .score-display {
-            font-weight: bold;
-            color: #2ecc71;
-            font-size: 1.1em;
-        }
-
-        .match-status {
-            display: inline-block;
-            padding: 4px 8px;
-            border-radius: 12px;
-            font-size: 0.8em;
-            font-weight: bold;
-            text-transform: uppercase;
-        }
-
-        .status-pending {
-            background: #ffeaa7;
-            color: #d63031;
-        }
-
-        .status-completed {
-            background: #00b894;
-            color: white;
-        }
-
-        .groups {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 20px;
-            margin-bottom: 30px;
-        }
-
-        .group {
-            background: white;
-            border: 2px solid #e9ecef;
-            border-radius: 15px;
-            padding: 20px;
-            text-align: center;
-            transition: all 0.3s ease;
-            position: relative;
-            overflow: hidden;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
-        }
-
-        .group::before {
-            content: attr(data-group);
-            position: absolute;
-            top: -50px;
-            right: -50px;
-            font-size: 100px;
-            font-weight: bold;
-            color: rgba(0, 0, 0, 0.05);
-        }
-
-        .group:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
-        }
-
-        .group h3 {
-            color: #2ecc71;
-            margin-bottom: 15px;
-            font-size: 1.5em;
-        }
-
-        .group p {
-            margin: 10px 0;
-            font-size: 1.1em;
-            color: #495057;
-        }
-
-        .group-stats {
-            margin-top: 20px;
-            padding: 15px;
-            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-            border-radius: 10px;
-            border: 2px solid #2ecc71;
-        }
-
-        .stat-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin: 8px 0;
-            padding: 5px 0;
-        }
-
-        .stat-label {
-            font-weight: bold;
-            color: #495057;
-            font-size: 1em;
-        }
-
-        .stat-value {
-            font-weight: bold;
-            color: #2ecc71;
-            font-size: 1.2em;
-            background: white;
-            padding: 4px 12px;
-            border-radius: 15px;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-        }
-
-        .score-tracker {
-            background: #f8f9fa;
-            padding: 30px;
-            border-radius: 15px;
-            margin-bottom: 30px;
-        }
-
-        .score-tracker h3 {
-            margin-bottom: 20px;
-            color: #2ecc71;
-            font-size: 1.8em;
-        }
-
-        .match-score {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-            gap: 20px;
-        }
-
-        .score-card h4 {
-            color: #333;
-            margin-bottom: 15px;
-            font-size: 1.2em;
+        .score-card:hover {
+            transform: translateY(-3px) !important;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1) !important;
+            border-color: #2ecc71 !important;
         }
 
         .score-input {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 15px;
-            flex-wrap: wrap;
-            gap: 10px;
+            display: flex !important;
+            justify-content: space-between !important;
+            align-items: center !important;
+            margin-bottom: 15px !important;
+            flex-wrap: wrap !important;
+            gap: 10px !important;
+            visibility: visible !important;
         }
 
         .score-input input {
-            width: 60px;
-            padding: 10px;
-            border: 2px solid #e9ecef;
-            border-radius: 8px;
-            text-align: center;
-            font-size: 1.1em;
-            font-weight: bold;
-            transition: all 0.3s ease;
+            width: 60px !important;
+            padding: 10px !important;
+            border: 2px solid #e9ecef !important;
+            border-radius: 8px !important;
+            text-align: center !important;
+            font-size: 1.1em !important;
+            font-weight: bold !important;
+            transition: all 0.3s ease !important;
+            visibility: visible !important;
+            opacity: 1 !important;
         }
 
         .score-input input:focus {
-            outline: none;
-            border-color: #2ecc71;
-            box-shadow: 0 0 0 3px rgba(46, 204, 113, 0.1);
+            outline: none !important;
+            border-color: #2ecc71 !important;
+            box-shadow: 0 0 0 3px rgba(46, 204, 113, 0.1) !important;
         }
 
         .btn {
@@ -1030,6 +873,7 @@
 
         // 탭 전환 기능
         function showTab(tabName, tabElement) {
+            console.log('showTab 호출됨:', tabName);
             const tabs = document.querySelectorAll('.tab');
             const contents = document.querySelectorAll('.tab-content');
             
@@ -1042,14 +886,35 @@
             const targetContent = document.getElementById(tabName);
             if (targetContent) {
                 targetContent.classList.add('active');
+                console.log(`${tabName} 탭 활성화됨`);
                 
                 // 스코어 탭이 활성화되면 스코어 입력 폼 생성
                 if (tabName === 'scores') {
-                    console.log('스코어 탭 활성화 - createScoreInputs 호출');
+                    console.log('스코어 탭 활성화 - 강화된 createScoreInputs 호출');
+                    
+                    // 즉시 실행
+                    createScoreInputs();
+                    
+                    // 100ms 후 재실행 (DOM 렌더링 대기)
                     setTimeout(() => {
+                        console.log('100ms 후 createScoreInputs 재실행');
                         createScoreInputs();
                     }, 100);
+                    
+                    // 500ms 후 재실행 (추가 안전장치)
+                    setTimeout(() => {
+                        console.log('500ms 후 createScoreInputs 재실행');
+                        createScoreInputs();
+                    }, 500);
+                    
+                    // 1초 후 최종 재실행
+                    setTimeout(() => {
+                        console.log('1초 후 createScoreInputs 최종 실행');
+                        createScoreInputs();
+                    }, 1000);
                 }
+            } else {
+                console.error(`${tabName} 탭 컨텐츠를 찾을 수 없습니다!`);
             }
         }
 
@@ -1572,6 +1437,23 @@
             createScoreInputs();
             updateStats();
             updateAdminDisplay();
+            
+            // 스코어 탭 강제 초기화 (Vercel 배포 대응)
+            console.log('스코어 탭 강제 초기화 시작');
+            setTimeout(() => {
+                console.log('1초 후 스코어 탭 강제 초기화');
+                createScoreInputs();
+            }, 1000);
+            
+            setTimeout(() => {
+                console.log('3초 후 스코어 탭 강제 초기화');
+                createScoreInputs();
+            }, 3000);
+            
+            setTimeout(() => {
+                console.log('5초 후 스코어 탭 강제 초기화');
+                createScoreInputs();
+            }, 5000);
             
             // Firebase SDK 로드 대기
             let checkCount = 0;
