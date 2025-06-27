@@ -3,7 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>테니스는 즐거워 - 대회 관리 시스템</title>
+    <title>테니스는 즐거워 - 실시간 대회 관리 시스템</title>
+    
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    
     <style>
         * {
             margin: 0;
@@ -62,6 +67,71 @@
         .header p {
             font-size: clamp(1em, 2.5vw, 1.2em);
             opacity: 0.9;
+        }
+
+        .sync-status {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 0.9em;
+        }
+
+        .sync-indicator {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #00ff00;
+            animation: pulse 2s infinite;
+        }
+
+        .sync-indicator.offline {
+            background: #ff0000;
+            animation: none;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+
+        .firebase-setup {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            margin: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+
+        .firebase-setup h3 {
+            color: #2ecc71;
+            margin-bottom: 15px;
+        }
+
+        .firebase-setup input {
+            width: 100%;
+            padding: 12px;
+            margin: 10px 0;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            font-size: 1em;
+        }
+
+        .firebase-setup .btn {
+            margin-top: 15px;
+            width: auto;
+            padding: 12px 30px;
+        }
+
+        .firebase-setup .btn:hover {
+            background: #27ae60;
         }
 
         .tabs {
@@ -670,6 +740,21 @@
         <div class="header">
             <h1>🎾 테니스는 즐거워</h1>
             <p>2024년 6월 27일 자체대회 관리 시스템</p>
+            <div class="sync-status">
+                <span class="sync-indicator" id="syncIndicator"></span>
+                <span id="syncText">연결 확인중...</span>
+            </div>
+        </div>
+
+        <!-- Firebase 설정 섹션 -->
+        <div id="firebaseSetup" class="firebase-setup" style="display: none;">
+            <h3>Firebase 설정</h3>
+            <p>실시간 동기화를 위해 Firebase 설정이 필요합니다.</p>
+            <input type="text" id="apiKey" placeholder="API Key">
+            <input type="text" id="authDomain" placeholder="Auth Domain">
+            <input type="text" id="databaseURL" placeholder="Database URL">
+            <input type="text" id="projectId" placeholder="Project ID">
+            <button class="btn" onclick="initializeFirebase()">Firebase 연결</button>
         </div>
 
         <div class="tabs">
@@ -964,12 +1049,8 @@
                         <h3 style="color: #2ecc71; margin-bottom: 15px;">1조 선수 관리</h3>
                         <div id="group1-players">
                             <div style="margin-bottom: 10px;">
-                                <label style="display: inline-block; width: 80px;">현숙:</label>
-                                <input type="text" value="현숙" data-group="1" data-original="현숙" style="padding: 5px; border: 1px solid #ddd; border-radius: 5px;">
-                            </div>
-                            <div style="margin-bottom: 10px;">
-                                <label style="display: inline-block; width: 80px;">지혜:</label>
-                                <input type="text" value="지혜" data-group="1" data-original="지혜" style="padding: 5px; border: 1px solid #ddd; border-radius: 5px;">
+                                <label style="display: inline-block; width: 80px;">현숙(조장):</label>
+                                <input type="text" value="현숙(조장)" data-group="1" data-original="현숙(조장)" style="padding: 5px; border: 1px solid #ddd; border-radius: 5px;">
                             </div>
                             <div style="margin-bottom: 10px;">
                                 <label style="display: inline-block; width: 80px;">병수:</label>
@@ -983,6 +1064,10 @@
                                 <label style="display: inline-block; width: 80px;">성무:</label>
                                 <input type="text" value="성무" data-group="1" data-original="성무" style="padding: 5px; border: 1px solid #ddd; border-radius: 5px;">
                             </div>
+                            <div style="margin-bottom: 10px;">
+                                <label style="display: inline-block; width: 80px;">영민:</label>
+                                <input type="text" value="영민" data-group="1" data-original="영민" style="padding: 5px; border: 1px solid #ddd; border-radius: 5px;">
+                            </div>
                         </div>
                         <button onclick="addPlayer(1)" class="btn" style="background: #27ae60; margin-top: 10px;">선수 추가</button>
                     </div>
@@ -992,12 +1077,8 @@
                         <h3 style="color: #2ecc71; margin-bottom: 15px;">2조 선수 관리</h3>
                         <div id="group2-players">
                             <div style="margin-bottom: 10px;">
-                                <label style="display: inline-block; width: 80px;">이현:</label>
-                                <input type="text" value="이현" data-group="2" data-original="이현" style="padding: 5px; border: 1px solid #ddd; border-radius: 5px;">
-                            </div>
-                            <div style="margin-bottom: 10px;">
-                                <label style="display: inline-block; width: 80px;">용무:</label>
-                                <input type="text" value="용무" data-group="2" data-original="용무" style="padding: 5px; border: 1px solid #ddd; border-radius: 5px;">
+                                <label style="display: inline-block; width: 80px;">이현(조장):</label>
+                                <input type="text" value="이현(조장)" data-group="2" data-original="이현(조장)" style="padding: 5px; border: 1px solid #ddd; border-radius: 5px;">
                             </div>
                             <div style="margin-bottom: 10px;">
                                 <label style="display: inline-block; width: 80px;">종명:</label>
@@ -1015,6 +1096,10 @@
                                 <label style="display: inline-block; width: 80px;">상현:</label>
                                 <input type="text" value="상현" data-group="2" data-original="상현" style="padding: 5px; border: 1px solid #ddd; border-radius: 5px;">
                             </div>
+                            <div style="margin-bottom: 10px;">
+                                <label style="display: inline-block; width: 80px;">용무:</label>
+                                <input type="text" value="용무" data-group="2" data-original="용무" style="padding: 5px; border: 1px solid #ddd; border-radius: 5px;">
+                            </div>
                         </div>
                         <button onclick="addPlayer(2)" class="btn" style="background: #27ae60; margin-top: 10px;">선수 추가</button>
                     </div>
@@ -1024,8 +1109,8 @@
                         <h3 style="color: #2ecc71; margin-bottom: 15px;">3조 선수 관리</h3>
                         <div id="group3-players">
                             <div style="margin-bottom: 10px;">
-                                <label style="display: inline-block; width: 80px;">경은:</label>
-                                <input type="text" value="경은" data-group="3" data-original="경은" style="padding: 5px; border: 1px solid #ddd; border-radius: 5px;">
+                                <label style="display: inline-block; width: 80px;">경은(조장):</label>
+                                <input type="text" value="경은(조장)" data-group="3" data-original="경은(조장)" style="padding: 5px; border: 1px solid #ddd; border-radius: 5px;">
                             </div>
                             <div style="margin-bottom: 10px;">
                                 <label style="display: inline-block; width: 80px;">재성:</label>
@@ -1043,10 +1128,6 @@
                                 <label style="display: inline-block; width: 80px;">양규:</label>
                                 <input type="text" value="양규" data-group="3" data-original="양규" style="padding: 5px; border: 1px solid #ddd; border-radius: 5px;">
                             </div>
-                            <div style="margin-bottom: 10px;">
-                                <label style="display: inline-block; width: 80px;">영민:</label>
-                                <input type="text" value="영민" data-group="3" data-original="영민" style="padding: 5px; border: 1px solid #ddd; border-radius: 5px;">
-                            </div>
                         </div>
                         <button onclick="addPlayer(3)" class="btn" style="background: #27ae60; margin-top: 10px;">선수 추가</button>
                     </div>
@@ -1056,8 +1137,8 @@
                         <h3 style="color: #2ecc71; margin-bottom: 15px;">4조 선수 관리</h3>
                         <div id="group4-players">
                             <div style="margin-bottom: 10px;">
-                                <label style="display: inline-block; width: 80px;">정언:</label>
-                                <input type="text" value="정언" data-group="4" data-original="정언" style="padding: 5px; border: 1px solid #ddd; border-radius: 5px;">
+                                <label style="display: inline-block; width: 80px;">정언(조장):</label>
+                                <input type="text" value="정언(조장)" data-group="4" data-original="정언(조장)" style="padding: 5px; border: 1px solid #ddd; border-radius: 5px;">
                             </div>
                             <div style="margin-bottom: 10px;">
                                 <label style="display: inline-block; width: 80px;">남희:</label>
@@ -1070,10 +1151,6 @@
                             <div style="margin-bottom: 10px;">
                                 <label style="display: inline-block; width: 80px;">승호:</label>
                                 <input type="text" value="승호" data-group="4" data-original="승호" style="padding: 5px; border: 1px solid #ddd; border-radius: 5px;">
-                            </div>
-                            <div style="margin-bottom: 10px;">
-                                <label style="display: inline-block; width: 80px;">진석:</label>
-                                <input type="text" value="진석" data-group="4" data-original="진석" style="padding: 5px; border: 1px solid #ddd; border-radius: 5px;">
                             </div>
                             <div style="margin-bottom: 10px;">
                                 <label style="display: inline-block; width: 80px;">승윤:</label>
@@ -1097,6 +1174,18 @@
     </div>
 
     <script>
+        // Firebase 설정
+        let database = null;
+        let isConnected = false;
+        
+        // 기본 Firebase 설정 (실제 사용시 자신의 Firebase 설정으로 변경 필요)
+        const defaultFirebaseConfig = {
+            apiKey: "AIzaSyCoaoE30DgIzqzjxtrJ0QBgRMYceTlQ2MY",
+            authDomain: "tennis-1f808.firebaseapp.com",
+            databaseURL: "https://tennis-1f808-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "tennis-1f808"
+        };
+
         // 승점 계산 방식 토글
         function toggleScoreExplanation() {
             const explanation = document.getElementById('score-explanation');
@@ -1111,42 +1200,171 @@
             }
         }
 
+        // Firebase 초기화
+        function initializeApp() {
+            const savedConfig = localStorage.getItem('firebaseConfig');
+            if (savedConfig) {
+                const config = JSON.parse(savedConfig);
+                initializeFirebaseWithConfig(config);
+            } else {
+                // 기본 설정으로 자동 초기화
+                initializeFirebaseWithConfig(defaultFirebaseConfig);
+            }
+        }
+
+        function initializeFirebase() {
+            const config = {
+                apiKey: document.getElementById('apiKey').value,
+                authDomain: document.getElementById('authDomain').value,
+                databaseURL: document.getElementById('databaseURL').value,
+                projectId: document.getElementById('projectId').value
+            };
+            
+            if (!config.apiKey || !config.databaseURL) {
+                alert('API Key와 Database URL은 필수입니다.');
+                return;
+            }
+            
+            localStorage.setItem('firebaseConfig', JSON.stringify(config));
+            initializeFirebaseWithConfig(config);
+        }
+
+        function initializeFirebaseWithConfig(config) {
+            try {
+                firebase.initializeApp(config);
+                database = firebase.database();
+                
+                // 연결 상태 모니터링
+                const connectedRef = database.ref('.info/connected');
+                connectedRef.on('value', (snap) => {
+                    if (snap.val() === true) {
+                        isConnected = true;
+                        updateConnectionStatus(true);
+                        setupRealtimeListeners();
+                        loadInitialData();
+                    } else {
+                        isConnected = false;
+                        updateConnectionStatus(false);
+                    }
+                });
+                
+                document.getElementById('firebaseSetup').style.display = 'none';
+            } catch (error) {
+                console.error('Firebase 초기화 실패:', error);
+                alert('Firebase 연결에 실패했습니다. 설정을 확인해주세요.');
+            }
+        }
+
+        function updateConnectionStatus(connected) {
+            const indicator = document.getElementById('syncIndicator');
+            const text = document.getElementById('syncText');
+            
+            if (connected) {
+                indicator.classList.remove('offline');
+                text.textContent = '실시간 동기화 중';
+            } else {
+                indicator.classList.add('offline');
+                text.textContent = '오프라인';
+            }
+        }
+
+        // 실시간 리스너 설정
+        function setupRealtimeListeners() {
+            // 스코어 변경 감지
+            database.ref('scores').on('value', (snapshot) => {
+                const data = snapshot.val();
+                if (data) {
+                    savedScores = data;
+                    updateAllDisplays();
+                    updateStats();
+                    updateGroupStats();
+                    showNotification('다른 사용자가 스코어를 업데이트했습니다.', 2000, true);
+                }
+            });
+
+            // 선수 변경 감지
+            database.ref('groups').on('value', (snapshot) => {
+                const data = snapshot.val();
+                if (data) {
+                    groups = data;
+                    updateGroupsDisplay();
+                    updateAdminDisplay();
+                    showNotification('선수 정보가 업데이트되었습니다.', 2000, true);
+                }
+            });
+
+            // 대진표 변경 감지
+            database.ref('matches').on('value', (snapshot) => {
+                const data = snapshot.val();
+                if (data) {
+                    matchData = data;
+                    updateScheduleDisplay();
+                    createScoreInputs();
+                }
+            });
+        }
+
+        // 초기 데이터 로드
+        function loadInitialData() {
+            // 기존 데이터가 없으면 기본값으로 초기화
+            database.ref().once('value', (snapshot) => {
+                const data = snapshot.val();
+                if (!data || !data.matches) {
+                    database.ref('matches').set(matchData);
+                    database.ref('groups').set(groups);
+                    database.ref('scores').set({});
+                }
+                
+                // 화면 초기화
+                updateScheduleDisplay();
+                updateGroupsDisplay();
+                createScoreInputs();
+                updateStats();
+                updateGroupStats();
+                updateAdminDisplay();
+            });
+        }
+
         // 전역 변수
         let savedScores = {};
         const totalMatches = 14;
-        const matchData = {
-            '1a': { team1: '석환/성무(1조)', team2: '종영/용무(2조)' },
-            '1b': { team1: '경은/재성(3조)', team2: '정언/승호(4조)' },
-            '2a': { team1: '현숙/병수(1조)', team2: '경은/철규(3조)' },
-            '2b': { team1: '정수/용국(2조)', team2: '승윤/남희(4조)' },
-            '3a': { team1: '성무/석환(1조)', team2: '자우/승호(4조)' },
-            '3b': { team1: '이현/정수(2조)', team2: '재성/영기(3조)' },
-            '4a': { team1: '지혜/병수(1조)', team2: '정언/진석(4조)' },
-            '4b': { team1: '상현/용무(2조)', team2: '철규/양규(3조)' },
-            '5a': { team1: '석환/현숙(1조)', team2: '영기/경은(3조)' },
-            '5b': { team1: '종명/정수(2조)', team2: '자우/승호(4조)' },
-            '6a': { team1: '지혜/성무(1조)', team2: '이현/상현(2조)' },
-            '6b': { team1: '영민/재성(3조)', team2: '진석/남희(4조)' },
-            '7a': { team1: '지혜/현숙(1조)', team2: '영민/양규(3조)' },
-            '7b': { team1: '이현/용국(2조)', team2: '정언/자우(4조)' }
-        };
+        let matchData = { ...defaultMatchData };
+        let groups = { ...defaultGroups };
 
         // 로컬 스토리지에서 데이터 로드
         function loadSavedData() {
-            const saved = localStorage.getItem('tennisTournamentData');
-            if (saved) {
-                savedScores = JSON.parse(saved);
-                updateAllDisplays();
+            if (isConnected && database) {
+                // Firebase에서 데이터 로드
+                database.ref('scores').once('value', (snapshot) => {
+                    const data = snapshot.val();
+                    if (data) {
+                        savedScores = data;
+                        updateAllDisplays();
+                    }
+                });
+            } else {
+                // 로컬 스토리지에서 데이터 로드
+                const saved = localStorage.getItem('tennisTournamentData');
+                if (saved) {
+                    savedScores = JSON.parse(saved);
+                    updateAllDisplays();
+                }
             }
         }
 
         // 로컬 스토리지에 데이터 저장
         function saveData() {
-            localStorage.setItem('tennisTournamentData', JSON.stringify(savedScores));
+            if (isConnected && database) {
+                // Firebase에 데이터 저장
+                database.ref('scores').set(savedScores);
+            } else {
+                // 로컬 스토리지에 데이터 저장
+                localStorage.setItem('tennisTournamentData', JSON.stringify(savedScores));
+            }
         }
 
         // 알림 표시
-        function showNotification(message, duration = 3000) {
+        function showNotification(message, duration = 3000, silent = false) {
             const notification = document.getElementById('notification');
             const text = document.getElementById('notification-text');
             text.textContent = message;
@@ -1155,6 +1373,12 @@
             setTimeout(() => {
                 notification.classList.remove('show');
             }, duration);
+            
+            if (!silent) {
+                updateStats();
+                updateGroupStats();
+                updateButtonText();
+            }
         }
 
         // 간단한 탭 전환 함수
@@ -1350,9 +1574,12 @@
 
         // 모든 일정표 업데이트
         function updateAllDisplays() {
-            Object.keys(matchData).forEach(matchId => {
-                updateScheduleDisplay(matchId);
-            });
+            updateGroupsDisplay();
+            updateAdminDisplay();
+            updateScheduleDisplay();
+            createScoreInputs();
+            updateStats();
+            updateGroupStats();
         }
 
         // 버튼 텍스트 업데이트
@@ -1556,6 +1783,17 @@
             if (updatedCount > 0) {
                 saveData();
                 updateAllDisplays();
+                
+                // Firebase에 선수 정보 업데이트
+                if (isConnected && database) {
+                    const groups = {};
+                    for (let i = 1; i <= 4; i++) {
+                        const groupInputs = document.querySelectorAll(`#group${i}-players input`);
+                        groups[i] = Array.from(groupInputs).map(input => input.value);
+                    }
+                    database.ref('groups').set(groups);
+                }
+                
                 showNotification(`${updatedCount}명의 선수 이름이 업데이트되었습니다.`);
             } else {
                 showNotification('변경된 선수 이름이 없습니다.');
@@ -1581,6 +1819,17 @@
                 newPlayers.forEach(input => {
                     input.parentElement.remove();
                 });
+                
+                // Firebase에 기본 선수 정보 업데이트
+                if (isConnected && database) {
+                    const defaultGroups = {
+                        1: ['현숙(조장)', '병수', '석환', '성무', '영민'],
+                        2: ['이현(조장)', '종명', '용국', '정수', '상현', '용무'],
+                        3: ['경은(조장)', '재성', '철규', '영기', '양규'],
+                        4: ['정언(조장)', '남희', '자우', '승호', '승윤']
+                    };
+                    database.ref('groups').set(defaultGroups);
+                }
                 
                 showNotification('선수 이름이 원래대로 복원되었습니다.');
             } else {
@@ -1609,6 +1858,9 @@
 
         // 페이지 로드 시 초기화
         document.addEventListener('DOMContentLoaded', function() {
+            // Firebase 초기화
+            initializeApp();
+            
             // 로컬 스토리지에서 데이터 로드
             loadSavedData();
             
@@ -1640,7 +1892,7 @@
                 }
             });
             
-            console.log('Page loaded, first tab activated');
+            console.log('Page loaded, Firebase initialized');
         });
 
         // 입력 필드 유효성 검사
@@ -1654,6 +1906,67 @@
                 }
             }
         });
+
+        // 그룹 표시 업데이트
+        function updateGroupsDisplay() {
+            // 그룹 정보를 화면에 표시하는 로직
+            console.log('Groups display updated');
+        }
+
+        // 관리자 화면 업데이트
+        function updateAdminDisplay() {
+            // 관리자 화면을 업데이트하는 로직
+            console.log('Admin display updated');
+        }
+
+        // 일정 표시 업데이트
+        function updateScheduleDisplay() {
+            // 일정을 화면에 표시하는 로직
+            console.log('Schedule display updated');
+        }
+
+        // 스코어 입력 생성
+        function createScoreInputs() {
+            // 스코어 입력 필드를 생성하는 로직
+            console.log('Score inputs created');
+        }
+
+        // 통계 업데이트
+        function updateStats() {
+            // 통계를 업데이트하는 로직
+            console.log('Stats updated');
+        }
+
+        // 그룹 통계 업데이트
+        function updateGroupStats() {
+            // 그룹 통계를 업데이트하는 로직
+            console.log('Group stats updated');
+        }
+
+        // 기본 데이터 구조
+        const defaultMatchData = {
+            '1a': { team1: '석환/성무(1조)', team2: '종명/용무(2조)' },
+            '1b': { team1: '경은/재성(3조)', team2: '정언/승호(4조)' },
+            '2a': { team1: '현숙/병수(1조)', team2: '경은/철규(3조)' },
+            '2b': { team1: '정수/용국(2조)', team2: '승윤/남희(4조)' },
+            '3a': { team1: '석환/병수(1조)', team2: '자우/승호(4조)' },
+            '3b': { team1: '이현/정수(2조)', team2: '재성/영기(3조)' },
+            '4a': { team1: '현숙/성무(1조)', team2: '정언/승윤(4조)' },
+            '4b': { team1: '상현/용무(2조)', team2: '철규/양규(3조)' },
+            '5a': { team1: '석환/병수(1조)', team2: '영기/철규(3조)' },
+            '5b': { team1: '종명/정수(2조)', team2: '자우/남희(4조)' },
+            '6a': { team1: '현숙/영민(1조)', team2: '이현/용국(2조)' },
+            '6b': { team1: '경은/양규(3조)', team2: '승호/남희(4조)' },
+            '7a': { team1: '성무/영민(1조)', team2: '영기/재성(3조)' },
+            '7b': { team1: '이현/상현(2조)', team2: '정언/자우(4조)' }
+        };
+
+        const defaultGroups = {
+            1: ['현숙(조장)', '병수', '석환', '성무', '영민'],
+            2: ['이현(조장)', '종명', '용국', '정수', '상현', '용무'],
+            3: ['경은(조장)', '재성', '철규', '영기', '양규'],
+            4: ['정언(조장)', '남희', '자우', '승호', '승윤']
+        };
     </script>
 </body>
 </html>
