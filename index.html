@@ -9,6 +9,14 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
     
+    <!-- 디버깅을 위한 추가 정보 표시 -->
+    <script>
+        console.log('페이지 로드 시작');
+        window.addEventListener('error', function(e) {
+            console.error('전역 에러:', e);
+        });
+    </script>
+    
     <style>
         * {
             margin: 0;
@@ -873,28 +881,42 @@
 
         // Firebase 초기화
         function initializeApp() {
+            console.log('Firebase 초기화 시작');
+            
             // Firebase SDK 로드 확인
             if (typeof firebase === 'undefined') {
                 console.error('Firebase SDK가 로드되지 않았습니다.');
                 updateConnectionStatus(false);
                 document.getElementById('syncText').textContent = 'Firebase 로드 실패';
                 
-                // 재시도
-                setTimeout(() => {
-                    if (typeof firebase !== 'undefined') {
-                        initializeApp();
-                    }
-                }, 2000);
+                // 오프라인 모드로 기본 데이터 표시
+                showOfflineMode();
                 return;
             }
             
             try {
-                firebase.initializeApp(firebaseConfig);
+                // Firebase 앱이 이미 초기화되었는지 확인
+                if (firebase.apps.length === 0) {
+                    firebase.initializeApp(firebaseConfig);
+                    console.log('Firebase 앱 초기화 완료');
+                }
+                
                 database = firebase.database();
+                console.log('Firebase Database 연결 시도');
+                
+                // 연결 테스트
+                database.ref('.info/connected').once('value')
+                    .then((snap) => {
+                        console.log('Firebase 연결 상태:', snap.val());
+                    })
+                    .catch((error) => {
+                        console.error('Firebase 연결 테스트 실패:', error);
+                    });
                 
                 // 연결 상태 모니터링
                 const connectedRef = database.ref('.info/connected');
                 connectedRef.on('value', (snap) => {
+                    console.log('연결 상태 변경:', snap.val());
                     if (snap.val() === true) {
                         isConnected = true;
                         updateConnectionStatus(true);
@@ -903,12 +925,29 @@
                     } else {
                         isConnected = false;
                         updateConnectionStatus(false);
+                        // 오프라인 모드로 전환
+                        showOfflineMode();
                     }
                 });
             } catch (error) {
                 console.error('Firebase 초기화 실패:', error);
-                alert('Firebase 연결에 실패했습니다. 페이지를 새로고침 해주세요.');
+                updateConnectionStatus(false);
+                document.getElementById('syncText').textContent = 'Firebase 오류';
+                // 오프라인 모드로 전환
+                showOfflineMode();
             }
+        }
+        
+        // 오프라인 모드 표시
+        function showOfflineMode() {
+            console.log('오프라인 모드로 전환');
+            // 기본 데이터로 화면 표시
+            updateScheduleDisplay();
+            updateGroupsDisplay();
+            createScoreInputs();
+            updateStats();
+            updateGroupStats();
+            updateAdminDisplay();
         }
 
         function updateConnectionStatus(connected) {
@@ -1491,20 +1530,32 @@
         }
 
         // 페이지 로드 시 초기화
-        window.addEventListener('load', () => {
+        window.addEventListener('DOMContentLoaded', () => {
+            console.log('DOM 로드 완료');
             initializeTabs();
+            
+            // 즉시 기본 UI 표시 (Firebase 연결 전에도 보이도록)
+            updateScheduleDisplay();
+            updateGroupsDisplay();
+            createScoreInputs();
+            updateStats();
+            updateAdminDisplay();
             
             // Firebase SDK 로드 대기
             let checkCount = 0;
             const checkFirebase = setInterval(() => {
                 if (typeof firebase !== 'undefined') {
+                    console.log('Firebase SDK 로드 완료');
                     clearInterval(checkFirebase);
                     initializeApp();
                 } else {
+                    console.log('Firebase SDK 로드 대기 중...', checkCount);
                     checkCount++;
-                    if (checkCount > 10) { // 5초 후 타임아웃
+                    if (checkCount > 20) { // 10초 후 타임아웃
                         clearInterval(checkFirebase);
-                        alert('Firebase 로드에 실패했습니다. 인터넷 연결을 확인해주세요.');
+                        console.error('Firebase 로드 타임아웃');
+                        updateConnectionStatus(false);
+                        document.getElementById('syncText').textContent = '오프라인 모드';
                     }
                 }
             }, 500);
