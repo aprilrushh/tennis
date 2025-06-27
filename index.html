@@ -156,7 +156,32 @@
         }
 
         .tab-content.active {
-            display: block;
+            display: block !important;
+        }
+
+        /* 스코어 탭 특별 처리 */
+        #scores.tab-content.active {
+            display: block !important;
+            visibility: visible !important;
+            opacity: 1 !important;
+        }
+
+        #score-inputs {
+            display: grid !important;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)) !important;
+            gap: 20px !important;
+            visibility: visible !important;
+        }
+
+        .score-card {
+            background: white !important;
+            padding: 20px !important;
+            border-radius: 10px !important;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05) !important;
+            transition: all 0.3s ease !important;
+            border: 2px solid transparent !important;
+            display: block !important;
+            visibility: visible !important;
         }
 
         @keyframes fadeIn {
@@ -328,21 +353,6 @@
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
             gap: 20px;
-        }
-
-        .score-card {
-            background: white;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
-            transition: all 0.3s ease;
-            border: 2px solid transparent;
-        }
-
-        .score-card:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
-            border-color: #2ecc71;
         }
 
         .score-card h4 {
@@ -1032,6 +1042,14 @@
             const targetContent = document.getElementById(tabName);
             if (targetContent) {
                 targetContent.classList.add('active');
+                
+                // 스코어 탭이 활성화되면 스코어 입력 폼 생성
+                if (tabName === 'scores') {
+                    console.log('스코어 탭 활성화 - createScoreInputs 호출');
+                    setTimeout(() => {
+                        createScoreInputs();
+                    }, 100);
+                }
             }
         }
 
@@ -1151,12 +1169,21 @@
 
         // 스코어 입력 폼 생성
         function createScoreInputs() {
+            console.log('createScoreInputs 함수 호출됨');
             const container = document.getElementById('score-inputs');
-            if (!container) return;
+            console.log('score-inputs 컨테이너:', container);
             
+            if (!container) {
+                console.error('score-inputs 컨테이너를 찾을 수 없습니다!');
+                return;
+            }
+            
+            console.log('컨테이너 내용 초기화');
             container.innerHTML = '';
+            console.log('matchData 키들:', Object.keys(matchData));
 
             Object.keys(matchData).forEach(matchId => {
+                console.log(`매치 ${matchId} 처리 중`);
                 const match = matchData[matchId];
                 const matchNumber = matchId.charAt(0);
                 const court = matchId.charAt(1) === 'a' ? 'A코트' : 'B코트';
@@ -1165,6 +1192,7 @@
                 scoreCard.className = 'score-card';
                 
                 const savedScore = savedScores[matchId];
+                console.log(`매치 ${matchId} 저장된 스코어:`, savedScore);
                 
                 scoreCard.innerHTML = `
                     <h4>${matchNumber}경기 - ${court}</h4>
@@ -1179,8 +1207,12 @@
                         ${savedScore ? '수정' : '저장'}
                     </button>
                 `;
+                console.log(`매치 ${matchId} 카드 생성 완료`);
                 container.appendChild(scoreCard);
             });
+            
+            console.log('createScoreInputs 완료. 생성된 카드 수:', container.children.length);
+            console.log('컨테이너 최종 HTML:', container.innerHTML.substring(0, 200) + '...');
         }
 
         // 스코어 저장
